@@ -4,8 +4,9 @@ import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
 import { maskKey } from '../lib/crypto';
 import {
   ArrowLeft, Key, Check, AlertCircle, Trash2, ExternalLink,
-  Shield, Loader2, Plus, ChevronDown, ChevronUp
+  Shield, Loader2, Plus, ChevronDown, ChevronUp, Database
 } from 'lucide-react';
+import { DataManagement } from './DataManagement';
 
 export function Settings() {
   const {
@@ -256,6 +257,15 @@ export function Settings() {
               );
             })}
           </div>
+        </section>
+
+        {/* Data Management */}
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <Database className="w-4 h-4 text-accent-light" />
+            Gerenciamento de Dados
+          </h2>
+          <DataManagement />
         </section>
 
         {/* Architecture Info */}
