@@ -455,12 +455,17 @@ export class AIProviderAdapter {
     }
     
     // Modelo local (Transformers.js)
+    // Sempre tentar carregar automaticamente (pode estar em cache mas não na memória)
     if (!localAI.isModelLoaded(model)) {
-      // Tentar carregar automaticamente
       try {
-        await localAI.loadModel(model);
+        console.log(`[Local AI] Carregando modelo ${model} automaticamente...`);
+        await localAI.loadModel(model, (progress) => {
+          console.log(`[Local AI] Progresso: ${progress}%`);
+        });
+        console.log(`[Local AI] Modelo ${model} carregado com sucesso!`);
       } catch (error) {
-        throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+        console.error(`[Local AI] Erro ao carregar modelo ${model}:`, error);
+        throw new Error(`Erro ao carregar modelo local "${model}". Verifique se você tem espaço suficiente e tente novamente. Detalhes: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       }
     }
 
