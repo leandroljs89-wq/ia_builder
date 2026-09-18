@@ -702,7 +702,34 @@ export const useStore = create<AppState>((set, get) => ({
       const settings = localStorage.getItem('onb_settings');
       
       if (notebooks) set({ notebooks: JSON.parse(notebooks) });
-      if (settings) set({ settings: JSON.parse(settings) });
+      if (settings) {
+        const parsedSettings = JSON.parse(settings);
+        
+        // Garantir que o provider "local" esteja sempre configurado
+        if (!parsedSettings.providers?.local || parsedSettings.providers.local.status !== 'configured') {
+          parsedSettings.providers = {
+            ...parsedSettings.providers,
+            local: {
+              id: 'local',
+              name: 'IA Local & Gratuita',
+              icon: '📱',
+              baseUrl: 'local',
+              apiKey: '',
+              models: [
+                { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
+                { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini (Local)', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
+                { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings (Local)', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
+                { id: 'huggingface:microsoft/DialoGPT-large', name: 'DialoGPT (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+                { id: 'huggingface:facebook/blenderbot-400M-distill', name: 'BlenderBot (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+              ],
+              status: 'configured',
+              lastValidated: new Date().toISOString(),
+            },
+          };
+        }
+        
+        set({ settings: parsedSettings });
+      }
     } catch (e) {
       console.error('Failed to load state:', e);
     }
