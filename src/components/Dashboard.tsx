@@ -35,21 +35,21 @@ export function Dashboard() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-accent rounded-lg flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-white" />
+      <header className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-accent rounded-lg flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <h1 className="text-lg font-bold">OpenNotebook AI</h1>
-            <p className="text-xs text-text-muted">Pesquisa inteligente com multi-provider IA</p>
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-lg font-bold truncate">OpenNotebook AI</h1>
+            <p className="text-[10px] sm:text-xs text-text-muted hidden sm:block">Pesquisa inteligente com multi-provider IA</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {configuredProviders.length > 0 && (
-            <div className="flex items-center gap-1 px-3 py-1.5 bg-success/10 border border-success/30 rounded-full">
-              <div className="w-2 h-2 bg-success rounded-full" />
-              <span className="text-xs text-success font-medium">{configuredProviders.length} provedor{configuredProviders.length > 1 ? 'es' : ''}</span>
+            <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 bg-success/10 border border-success/30 rounded-full">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-success rounded-full" />
+              <span className="text-[10px] sm:text-xs text-success font-medium">{configuredProviders.length}</span>
             </div>
           )}
           <button
@@ -62,9 +62,9 @@ export function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
         {/* Search & Create */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
@@ -72,15 +72,16 @@ export function Dashboard() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar notebooks..."
-              className="w-full pl-10 pr-4 py-2.5 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
+              className="w-full pl-10 pr-4 py-2 sm:py-2.5 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
             />
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-dark text-white rounded-lg font-medium text-sm transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-accent hover:bg-accent-dark text-white rounded-lg font-medium text-xs sm:text-sm transition-colors shrink-0"
           >
             <Plus className="w-4 h-4" />
-            Novo Notebook
+            <span className="hidden sm:inline">Novo Notebook</span>
+            <span className="sm:hidden">Novo</span>
           </button>
         </div>
 
@@ -146,11 +147,11 @@ export function Dashboard() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredNotebooks.map((notebook) => (
               <div
                 key={notebook.id}
-                className="group bg-bg-card border border-border rounded-xl p-5 hover:border-accent/50 transition-all cursor-pointer animate-fade-in"
+                className="group bg-bg-card border border-border rounded-xl p-4 sm:p-5 hover:border-accent/50 transition-all cursor-pointer animate-fade-in"
                 onClick={() => setPage('notebook', notebook.id)}
               >
                 <div className="flex items-start justify-between mb-3">

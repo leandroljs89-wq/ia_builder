@@ -60,8 +60,8 @@ export function AnalysisTools({ notebookId }: Props) {
   const readySources = notebook.sources.filter(s => s.status === 'ready' && s.enabled);
 
   return (
-    <div className="h-full overflow-y-auto p-4">
-      <div className="mb-4">
+    <div className="h-full overflow-y-auto p-3 sm:p-4">
+      <div className="mb-3 sm:mb-4">
         <h2 className="text-sm font-semibold">Ferramentas de Análise</h2>
         <p className="text-xs text-text-muted">
           {readySources.length} fonte{readySources.length !== 1 ? 's' : ''} pronta{readySources.length !== 1 ? 's' : ''} para análise
@@ -77,13 +77,13 @@ export function AnalysisTools({ notebookId }: Props) {
       )}
 
       {/* Tools Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
         {ANALYSIS_TOOLS.map((tool) => (
           <button
             key={tool.type}
             onClick={() => handleRun(tool.type)}
             disabled={isStreaming || readySources.length === 0}
-            className="flex items-start gap-3 p-3 bg-bg-card border border-border rounded-xl text-left hover:border-accent/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-3 bg-bg-card border border-border rounded-xl text-left hover:border-accent/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
               {isStreaming && activeTool === tool.type ? (

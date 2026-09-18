@@ -39,20 +39,20 @@ export function Settings() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <header className="flex items-center gap-3 px-6 py-4 border-b border-border">
+      <header className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0">
         <button
           onClick={() => setPage('dashboard')}
-          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
+          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div>
-          <h1 className="text-lg font-bold">Configurações</h1>
-          <p className="text-xs text-text-muted">Gerencie provedores de IA e preferências</p>
+        <div className="min-w-0">
+          <h1 className="text-base sm:text-lg font-bold">Configurações</h1>
+          <p className="text-[10px] sm:text-xs text-text-muted">Gerencie provedores de IA e preferências</p>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-6 max-w-3xl mx-auto w-full">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl mx-auto w-full">
         {/* Security Notice */}
         <div className="flex items-start gap-3 p-4 bg-accent/5 border border-accent/20 rounded-xl mb-6">
           <Shield className="w-5 h-5 text-accent-light shrink-0 mt-0.5" />

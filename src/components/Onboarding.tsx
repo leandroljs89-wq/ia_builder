@@ -113,9 +113,9 @@ export function Onboarding() {
   const currentStep = steps[step];
 
   return (
-    <div className="h-full flex items-center justify-center p-6">
-      <div className="max-w-lg w-full">
-        <div className="bg-bg-card border border-border rounded-2xl p-8 animate-fade-in">
+    <div className="h-full flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="max-w-lg w-full my-auto">
+        <div className="bg-bg-card border border-border rounded-2xl p-5 sm:p-8 animate-fade-in">
           {/* Progress dots */}
           <div className="flex items-center justify-center gap-2 mb-8">
             {steps.map((_, i) => (

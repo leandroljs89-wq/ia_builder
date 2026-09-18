@@ -22,11 +22,50 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Safe area support for notched devices */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 body {
   font-family: var(--font-sans);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   overflow: hidden;
+  /* Prevent zoom on input focus in iOS */
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+
+/* Prevent iOS bounce scroll */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area padding utility */
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+
+/* Mobile-specific: extra bottom padding to avoid Netlify overlay */
+@media (max-width: 768px) {
+  .mobile-safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 4rem) !important;
+  }
+}
+
+/* Hide scrollbar on mobile tabs */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 ::-webkit-scrollbar {
