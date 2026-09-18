@@ -132,7 +132,7 @@ export function Sidebar({ onOpenSettings }: Props) {
                         e.stopPropagation();
                         setDeleteNotebookConfirm({ show: true, id: notebook.id, name: notebook.name });
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-error transition-all"
+                      className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-1 text-text-muted hover:text-error transition-all"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -163,7 +163,7 @@ export function Sidebar({ onOpenSettings }: Props) {
                                 title: conv.title || 'Nova conversa'
                               });
                             }}
-                            className="opacity-0 group-hover:opacity-100 p-0.5 text-text-muted hover:text-error transition-all"
+                            className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 p-0.5 text-text-muted hover:text-error transition-all"
                           >
                             <X className="w-3 h-3" />
                           </button>

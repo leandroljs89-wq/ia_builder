@@ -194,7 +194,7 @@ export function NotesPanel({ notebookId }: Props) {
                       <span className="px-1.5 py-0.5 bg-accent/10 text-accent-light text-[10px] rounded">IA</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleExport(note.content, note.title)}
                       className="p-1 text-text-muted hover:text-text-secondary transition-colors"
