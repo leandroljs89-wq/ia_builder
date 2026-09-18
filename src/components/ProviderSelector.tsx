@@ -61,6 +61,7 @@ export function ProviderSelector() {
             </div>
             <div className="max-h-80 overflow-y-auto p-1">
               {configuredProviders.map(([id, provider]) => {
+                // Sempre usar os modelos atualizados de PROVIDER_DEFINITIONS
                 const providerDef = PROVIDER_DEFINITIONS[id];
                 const chatModels = providerDef?.models.filter(m => m.type === 'chat') || [];
                 const isSelected = id === settings.defaultProvider;
@@ -93,7 +94,7 @@ export function ProviderSelector() {
 
                     {isSelected && chatModels.length > 0 && (
                       <div className="ml-8 mt-1 mb-2 space-y-0.5">
-                        {chatModels.slice(0, 3).map((model) => (
+                        {chatModels.map((model) => (
                           <button
                             key={model.id}
                             onClick={() => {

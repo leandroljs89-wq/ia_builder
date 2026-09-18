@@ -3,6 +3,8 @@
 // Runs on app load to update deprecated models
 // ============================================
 
+import { PROVIDER_DEFINITIONS } from './ai-adapter';
+
 // List of deprecated model IDs that should be removed/updated
 const DEPRECATED_MODELS = [
   'llama-3.3-70b-versatile',
@@ -59,6 +61,20 @@ export function runMigrations(): { migrated: boolean; changes: string[] } {
           changes.push(`Modelo padrão atualizado: ${settings.defaultModel} → ${replacement}`);
           settings.defaultModel = replacement;
           settingsChanged = true;
+        }
+      }
+
+      // Atualizar provider "local" com novos modelos (APIs gratuitas + locais)
+      if (settings.providers?.local) {
+        if (PROVIDER_DEFINITIONS?.local?.models) {
+          const oldModelCount = settings.providers.local.models?.length || 0;
+          const newModelCount = PROVIDER_DEFINITIONS.local.models.length;
+          
+          if (oldModelCount !== newModelCount) {
+            settings.providers.local.models = PROVIDER_DEFINITIONS.local.models;
+            changes.push(`Provider "local" atualizado: ${oldModelCount} → ${newModelCount} modelos (incluindo APIs gratuitas)`);
+            settingsChanged = true;
+          }
         }
       }
 
