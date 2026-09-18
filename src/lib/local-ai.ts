@@ -34,24 +34,32 @@ export interface LocalModel {
   name: string;
   description: string;
   size: string;
-  type: 'text-generation' | 'feature-extraction';
+  type: 'text-generation' | 'text2text-generation' | 'feature-extraction';
   downloaded: boolean;
 }
 
 export const LOCAL_MODELS: LocalModel[] = [
   {
-    id: 'Xenova/Qwen2.5-0.5B-Instruct',
-    name: 'Qwen 2.5 0.5B',
-    description: 'Modelo leve e rápido, ideal para celular',
-    size: '~500MB',
+    id: 'Xenova/distilgpt2',
+    name: 'DistilGPT-2',
+    description: 'Modelo muito leve e rápido, ideal para celular',
+    size: '~82MB',
     type: 'text-generation',
     downloaded: false,
   },
   {
-    id: 'Xenova/Phi-3-mini-4k-instruct',
-    name: 'Phi-3 Mini',
-    description: 'Modelo da Microsoft, bom equilíbrio',
-    size: '~1.5GB',
+    id: 'Xenova/LaMini-Flan-T5-248M',
+    name: 'LaMini Flan-T5 248M',
+    description: 'Modelo pequeno com boa qualidade',
+    size: '~250MB',
+    type: 'text2text-generation',
+    downloaded: false,
+  },
+  {
+    id: 'Xenova/gpt2',
+    name: 'GPT-2',
+    description: 'Modelo maior, melhor qualidade',
+    size: '~450MB',
     type: 'text-generation',
     downloaded: false,
   },
