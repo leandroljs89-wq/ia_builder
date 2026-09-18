@@ -22,10 +22,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: 'sk-',
     apiKeyUrl: 'https://platform.openai.com/api-keys',
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai', type: 'chat', maxTokens: 16384, contextWindow: 128000 },
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai', type: 'chat', maxTokens: 16384, contextWindow: 128000 },
-      { id: 'o1', name: 'o1', provider: 'openai', type: 'chat', maxTokens: 100000, contextWindow: 200000 },
-      { id: 'o3-mini', name: 'o3 Mini', provider: 'openai', type: 'chat', maxTokens: 100000, contextWindow: 200000 },
+      { id: 'gpt-6-astra', name: 'GPT-6 Astra', provider: 'openai', type: 'chat', maxTokens: 128000, contextWindow: 1050000 },
+      { id: 'gpt-5.6-sol', name: 'GPT-5.6 Sol', provider: 'openai', type: 'chat', maxTokens: 128000, contextWindow: 1050000 },
+      { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra', provider: 'openai', type: 'chat', maxTokens: 128000, contextWindow: 1050000 },
+      { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna', provider: 'openai', type: 'chat', maxTokens: 128000, contextWindow: 1050000 },
       { id: 'text-embedding-3-small', name: 'Embedding 3 Small', provider: 'openai', type: 'embedding', maxTokens: 8191, contextWindow: 8191 },
       { id: 'text-embedding-3-large', name: 'Embedding 3 Large', provider: 'openai', type: 'embedding', maxTokens: 8191, contextWindow: 8191 },
     ]
@@ -37,9 +37,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: 'sk-ant-',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
     models: [
-      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', provider: 'anthropic', type: 'chat', maxTokens: 8192, contextWindow: 200000 },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', provider: 'anthropic', type: 'chat', maxTokens: 4096, contextWindow: 200000 },
-      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', provider: 'anthropic', type: 'chat', maxTokens: 4096, contextWindow: 200000 },
+      { id: 'claude-opus-5', name: 'Claude Opus 5', provider: 'anthropic', type: 'chat', maxTokens: 128000, contextWindow: 1000000 },
+      { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'anthropic', type: 'chat', maxTokens: 128000, contextWindow: 1000000 },
+      { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', provider: 'anthropic', type: 'chat', maxTokens: 128000, contextWindow: 1000000 },
+      { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', provider: 'anthropic', type: 'chat', maxTokens: 64000, contextWindow: 200000 },
     ]
   },
   google: {
@@ -49,9 +50,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: 'AI',
     apiKeyUrl: 'https://aistudio.google.com/app/apikey',
     models: [
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'google', type: 'chat', maxTokens: 8192, contextWindow: 2000000 },
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'google', type: 'chat', maxTokens: 8192, contextWindow: 1000000 },
-      { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', provider: 'google', type: 'chat', maxTokens: 8192, contextWindow: 1000000 },
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'google', type: 'chat', maxTokens: 65536, contextWindow: 2000000 },
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'google', type: 'chat', maxTokens: 65536, contextWindow: 1000000 },
+      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'google', type: 'chat', maxTokens: 65536, contextWindow: 1000000 },
+      { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', provider: 'google', type: 'chat', maxTokens: 65536, contextWindow: 2000000 },
       { id: 'text-embedding-004', name: 'Text Embedding', provider: 'google', type: 'embedding', maxTokens: 2048, contextWindow: 2048 },
     ]
   },
@@ -62,8 +64,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: 'gsk_',
     apiKeyUrl: 'https://console.groq.com/keys',
     models: [
-      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'groq', type: 'chat', maxTokens: 32768, contextWindow: 128000 },
-      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', provider: 'groq', type: 'chat', maxTokens: 32768, contextWindow: 32768 },
+      { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', provider: 'groq', type: 'chat', maxTokens: 65536, contextWindow: 131072 },
+      { id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', provider: 'groq', type: 'chat', maxTokens: 65536, contextWindow: 131072 },
+      { id: 'qwen/qwen3.8-27b', name: 'Qwen3.8 27B', provider: 'groq', type: 'chat', maxTokens: 16384, contextWindow: 131042 },
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', provider: 'groq', type: 'chat', maxTokens: 131072, contextWindow: 131072 },
     ]
   },
   mistral: {
@@ -73,9 +77,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: '',
     apiKeyUrl: 'https://console.mistral.ai/api-keys/',
     models: [
-      { id: 'mistral-large-latest', name: 'Mistral Large', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 128000 },
-      { id: 'mistral-medium-latest', name: 'Mistral Medium', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 32000 },
-      { id: 'mistral-small-latest', name: 'Mistral Small', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 32000 },
+      { id: 'mistral-large-latest', name: 'Mistral Large 3', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 131000 },
+      { id: 'mistral-medium-latest', name: 'Mistral Medium 3.5', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 131000 },
+      { id: 'mistral-small-latest', name: 'Mistral Small 3.2 24B', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 131000 },
+      { id: 'devstral-small-2507', name: 'Devstral Small 1.1', provider: 'mistral', type: 'chat', maxTokens: 8192, contextWindow: 131000 },
     ]
   },
   ollama: {
@@ -98,9 +103,9 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: 'sk-or-',
     apiKeyUrl: 'https://openrouter.ai/keys',
     models: [
-      { id: 'openai/gpt-4o', name: 'GPT-4o (via OpenRouter)', provider: 'openrouter', type: 'chat', maxTokens: 16384, contextWindow: 128000 },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 8192, contextWindow: 200000 },
-      { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash Free', provider: 'openrouter', type: 'chat', maxTokens: 8192, contextWindow: 1000000 },
+      { id: 'openai/gpt-5.6-luna', name: 'GPT-5.6 Luna (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 128000, contextWindow: 1050000 },
+      { id: 'anthropic/claude-sonnet-5', name: 'Claude Sonnet 5 (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 128000, contextWindow: 1000000 },
+      { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 65536, contextWindow: 1000000 },
       { id: 'meta-llama/llama-3.3-70b-instruct', name: 'Llama 3.3 70B (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 32768, contextWindow: 128000 },
     ]
   },
@@ -461,7 +466,7 @@ export class AIProviderAdapter {
             'anthropic-dangerous-direct-browser-access': 'true',
           },
           body: JSON.stringify({
-            model: 'claude-3-haiku-20240307',
+            model: 'claude-haiku-4-5-20251001',
             max_tokens: 1,
             messages: [{ role: 'user', content: 'Hi' }],
           }),
