@@ -133,6 +133,18 @@ export interface NotebookSettings {
   topK: number;
   temperature: number;
   systemPrompt: string;
+  conversationConfig?: ConversationConfig;
+}
+
+export type ConversationMode = 'default' | 'learning_guide' | 'custom';
+export type ResponseLength = 'short' | 'default' | 'long';
+
+export interface ConversationConfig {
+  mode: ConversationMode;
+  responseLength: ResponseLength;
+  customInstructions?: string;
+  role?: string;
+  tone?: string;
 }
 
 export interface ProviderRegistry {
