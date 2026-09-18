@@ -65,19 +65,20 @@ export function SourceManager({ notebookId }: Props) {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-4">
+    <div className="h-full overflow-y-auto p-3 sm:p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div>
           <h2 className="text-sm font-semibold">Fontes de Conhecimento</h2>
           <p className="text-xs text-text-muted">{notebook.sources.length} fonte{notebook.sources.length !== 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent-dark text-white rounded-lg text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-accent hover:bg-accent-dark text-white rounded-lg text-xs font-medium transition-colors shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
-          Adicionar Fonte
+          <span className="hidden sm:inline">Adicionar Fonte</span>
+          <span className="sm:hidden">Adicionar</span>
         </button>
       </div>
 
