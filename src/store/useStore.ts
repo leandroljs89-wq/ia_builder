@@ -11,6 +11,8 @@ import {
 import { aiAdapter, PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
 import { processSourceContent, searchChunks, buildContextFromChunks, generateSimpleEmbedding } from '../lib/rag-pipeline';
 import { encryptKey } from '../lib/crypto';
+import { supabase } from '../lib/supabase';
+import * as db from '../lib/supabase-services';
 
 interface AppState {
   // Navigation
@@ -68,7 +70,7 @@ interface AppState {
   completeOnboarding: () => void;
   
   // Persistence
-  loadState: () => void;
+  loadState: () => Promise<void>;
   saveState: () => void;
 }
 
@@ -82,6 +84,35 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 const NOTEBOOK_COLORS = ['#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#8b5cf6'];
 const NOTEBOOK_ICONS = ['📚', '🔬', '💼', '🎓', '📊', '🧠', '📝', '🌐', '⚡', '🎯'];
+
+// Função auxiliar para salvar no Supabase em background
+async function saveToSupabase(table: string, data: any) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('[Supabase] Usuário não autenticado, pulando sync');
+      return;
+    }
+
+    console.log(`[Supabase] Salvando ${table} no Supabase...`);
+
+    if (table === 'notebooks') {
+      await db.createNotebook({
+        id: data.id,
+        user_id: user.id,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+        color: data.color,
+        settings: data.settings,
+      });
+    }
+
+    console.log(`[Supabase] ${table} salvo com sucesso!`);
+  } catch (error) {
+    console.error(`[Supabase] Erro ao salvar ${table}:`, error);
+  }
+}
 
 export const useStore = create<AppState>((set, get) => ({
   // Initial state
@@ -135,15 +166,27 @@ export const useStore = create<AppState>((set, get) => ({
     };
     set(s => ({ notebooks: [...s.notebooks, notebook] }));
     get().saveState();
+    
+    // Salvar no Supabase em background (não bloqueia a UI)
+    saveToSupabase('notebooks', notebook);
+    
     return id;
   },
 
-  deleteNotebook: (id) => {
+  deleteNotebook: async (id) => {
     set(s => ({ 
       notebooks: s.notebooks.filter(n => n.id !== id),
       currentNotebookId: s.currentNotebookId === id ? null : s.currentNotebookId,
     }));
     get().saveState();
+    
+    // Deletar no Supabase
+    try {
+      await db.deleteNotebook(id);
+      console.log('[Supabase] Notebook deletado com sucesso!');
+    } catch (error) {
+      console.error('[Supabase] Erro ao deletar notebook:', error);
+    }
   },
 
   updateNotebook: (id, updates) => {
@@ -177,6 +220,10 @@ export const useStore = create<AppState>((set, get) => ({
       ),
     }));
     get().saveState();
+    
+    // Salvar no Supabase
+    saveToSupabase('sources', source);
+    
     // Auto-process
     get().processSource(notebookId, sourceId);
   },
@@ -279,6 +326,10 @@ export const useStore = create<AppState>((set, get) => ({
       currentConversationId: id,
     }));
     get().saveState();
+    
+    // Salvar no Supabase
+    saveToSupabase('conversations', conversation);
+    
     return id;
   },
 
@@ -604,6 +655,9 @@ export const useStore = create<AppState>((set, get) => ({
       ),
     }));
     get().saveState();
+    
+    // Salvar no Supabase
+    saveToSupabase('notes', note);
   },
 
   updateNote: (notebookId, noteId, updates) => {
@@ -751,12 +805,54 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   // Persistence
-  loadState: () => {
+  loadState: async () => {
     try {
+      // Tentar carregar do Supabase primeiro
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('[Supabase] Usuário autenticado, carregando dados do Supabase...');
+          const supabaseNotebooks = await db.getNotebooks();
+          if (supabaseNotebooks && supabaseNotebooks.length > 0) {
+            console.log(`[Supabase] ${supabaseNotebooks.length} notebooks carregados do Supabase`);
+            // Converter formato do Supabase para formato do app
+            const notebooks: Notebook[] = supabaseNotebooks.map(nb => ({
+              id: nb.id,
+              name: nb.name,
+              description: nb.description || '',
+              icon: nb.icon,
+              color: nb.color,
+              sources: [], // Carregar sources separadamente se necessário
+              conversations: [], // Carregar conversations separadamente se necessário
+              notes: [], // Carregar notes separadamente se necessário
+              settings: nb.settings || {
+                defaultModel: '',
+                defaultProvider: '',
+                mode: 'sources',
+                chunkSize: 512,
+                chunkOverlap: 50,
+                topK: 5,
+                temperature: 0.7,
+                systemPrompt: 'Você é um assistente de pesquisa útil.',
+              },
+              createdAt: new Date(nb.created_at).getTime(),
+              updatedAt: new Date(nb.updated_at).getTime(),
+            }));
+            set({ notebooks });
+          }
+        }
+      } catch (error) {
+        console.log('[Supabase] Erro ao carregar do Supabase, usando localStorage:', error);
+      }
+      
+      // Fallback para localStorage
       const notebooks = localStorage.getItem('onb_notebooks');
       const settings = localStorage.getItem('onb_settings');
       
-      if (notebooks) set({ notebooks: JSON.parse(notebooks) });
+      if (notebooks && get().notebooks.length === 0) {
+        set({ notebooks: JSON.parse(notebooks) });
+      }
+      
       if (settings) {
         const parsedSettings = JSON.parse(settings);
         
