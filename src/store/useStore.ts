@@ -378,6 +378,34 @@ export const useStore = create<AppState>((set, get) => ({
       }));
 
       let systemPrompt = notebook.settings.systemPrompt;
+      
+      // Aplicar configurações de conversa
+      const conversationConfig = notebook.settings.conversationConfig;
+      if (conversationConfig) {
+        // Adicionar modo da conversa
+        if (conversationConfig.mode === 'learning_guide') {
+          systemPrompt += `\n\nMODO: Guia de Aprendizagem\nVocê está atuando como um guia educacional. Explique conceitos de forma clara e didática, use exemplos práticos, faça analogias quando possível e verifique o entendimento do usuário. Priorize o aprendizado efetivo.`;
+        } else if (conversationConfig.mode === 'custom') {
+          // Adicionar configurações personalizadas
+          if (conversationConfig.role) {
+            systemPrompt += `\n\nPAPEL: ${conversationConfig.role}`;
+          }
+          if (conversationConfig.tone) {
+            systemPrompt += `\n\nTOM: ${conversationConfig.tone}`;
+          }
+          if (conversationConfig.customInstructions) {
+            systemPrompt += `\n\nINSTRUÇÕES PERSONALIZADAS:\n${conversationConfig.customInstructions}`;
+          }
+        }
+        
+        // Adicionar tamanho da resposta
+        if (conversationConfig.responseLength === 'short') {
+          systemPrompt += `\n\nTAMANHO DA RESPOSTA: Seja conciso e direto. Respostas curtas e objetivas.`;
+        } else if (conversationConfig.responseLength === 'long') {
+          systemPrompt += `\n\nTAMANHO DA RESPOSTA: Seja detalhado e completo. Respostas longas e abrangentes.`;
+        }
+      }
+      
       if (conversation.mode === 'sources' && context) {
         systemPrompt += `\n\nFONTES DISPONÍVEIS:\n${context}\n\nINSTRUÇÕES: Responda APENAS com base nas fontes acima. Use [Fonte X] para citar. Se a informação não estiver nas fontes, diga que não encontrou.`;
       } else if (context) {

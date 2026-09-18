@@ -3,10 +3,11 @@ import { useStore } from '../store/useStore';
 import { SourceManager } from './SourceManager';
 import { AnalysisTools } from './AnalysisTools';
 import { NotesPanel } from './NotesPanel';
+import { ConversationConfig } from './ConversationConfig';
 import {
   Plus, Send, MessageSquare, FileText, StickyNote,
   Sparkles, Pin, RefreshCw, Copy, Check, Loader2,
-  Zap, Download, Share2
+  Zap, Download, Share2, Settings
 } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
 import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
@@ -25,6 +26,7 @@ export function NotebookView() {
   const [activeTab, setActiveTab] = useState<'chat' | 'sources' | 'analysis' | 'notes'>('chat');
   const [inputValue, setInputValue] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showConfig, setShowConfig] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -145,6 +147,13 @@ export function NotebookView() {
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setShowConfig(true)}
+            className="p-1.5 sm:p-2 text-text-muted hover:text-accent-light transition-colors"
+            title="Configurar conversas"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
           {conversation && conversation.messages.length > 0 && (
             <>
               <button
@@ -327,6 +336,14 @@ export function NotebookView() {
         {activeTab === 'analysis' && <AnalysisTools notebookId={notebook.id} />}
         {activeTab === 'notes' && <NotesPanel notebookId={notebook.id} />}
       </div>
+
+      {/* Conversation Config Modal */}
+      {showConfig && (
+        <ConversationConfig
+          notebookId={notebook.id}
+          onClose={() => setShowConfig(false)}
+        />
+      )}
     </div>
   );
 }
