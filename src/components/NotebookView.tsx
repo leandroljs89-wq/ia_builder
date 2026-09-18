@@ -6,9 +6,10 @@ import { NotesPanel } from './NotesPanel';
 import {
   Plus, Send, MessageSquare, FileText, StickyNote,
   Sparkles, Pin, RefreshCw, Copy, Check, Loader2,
-  Zap
+  Zap, Download, Share2
 } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
+import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
 
 export function NotebookView() {
   const {
@@ -63,6 +64,61 @@ export function NotebookView() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleExportConversationPDF = () => {
+    if (!conversation || conversation.messages.length === 0) {
+      showToast('error', 'Nenhuma mensagem para exportar');
+      return;
+    }
+
+    const chatContent = conversation.messages
+      .map(msg => {
+        const role = msg.role === 'user' ? 'Você' : 'IA';
+        return `[${role}]\n${msg.content}\n`;
+      })
+      .join('\n---\n\n');
+
+    const doc = generatePDF({
+      title: conversation.title || 'Conversa',
+      subtitle: `Notebook: ${notebook.name}`,
+      content: chatContent,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+
+    const filename = `${conversation.title || 'conversa'}-${new Date().toISOString().split('T')[0]}.pdf`;
+    downloadPDF(doc, filename);
+    showToast('success', 'Conversa exportada como PDF!');
+  };
+
+  const handleShareConversationPDF = async () => {
+    if (!conversation || conversation.messages.length === 0) {
+      showToast('error', 'Nenhuma mensagem para compartilhar');
+      return;
+    }
+
+    const chatContent = conversation.messages
+      .map(msg => {
+        const role = msg.role === 'user' ? 'Você' : 'IA';
+        return `[${role}]\n${msg.content}\n`;
+      })
+      .join('\n---\n\n');
+
+    const doc = generatePDF({
+      title: conversation.title || 'Conversa',
+      subtitle: `Notebook: ${notebook.name}`,
+      content: chatContent,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+
+    const title = `${conversation.title || 'Conversa'} - ${notebook.name}`;
+    const shared = await sharePDF(doc, title);
+
+    if (!shared) {
+      const filename = `${conversation.title || 'conversa'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPDF(doc, filename);
+      showToast('info', 'PDF baixado (compartilhamento não suportado)');
+    }
+  };
+
   const tabs = [
     { id: 'chat' as const, icon: MessageSquare, label: 'Chat' },
     { id: 'sources' as const, icon: FileText, label: 'Fontes' },
@@ -87,8 +143,26 @@ export function NotebookView() {
           </div>
         </div>
 
-        {/* Provider Selector */}
-        <div className="shrink-0">
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {conversation && conversation.messages.length > 0 && (
+            <>
+              <button
+                onClick={handleExportConversationPDF}
+                className="p-1.5 sm:p-2 text-text-muted hover:text-success transition-colors"
+                title="Exportar conversa como PDF"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleShareConversationPDF}
+                className="p-1.5 sm:p-2 text-text-muted hover:text-accent-light transition-colors"
+                title="Compartilhar conversa"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
           <ProviderSelector />
         </div>
       </header>
