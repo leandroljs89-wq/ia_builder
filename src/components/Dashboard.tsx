@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Plus, BookOpen, Search, Trash2, ChevronDown, Check } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2 } from 'lucide-react';
 import { ConfirmModal } from './ConfirmModal';
-import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
+import { ProviderSelector } from './ProviderSelector';
 
 export function Dashboard() {
-  const { notebooks, createNotebook, deleteNotebook, setPage, settings, setDefaultModel } = useStore();
+  const { notebooks, createNotebook, deleteNotebook, updateNotebook, setPage, settings } = useStore();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showProviderSelector, setShowProviderSelector] = useState(false);
+  const [editingNotebook, setEditingNotebook] = useState<{ id: string; name: string; description: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string; name: string }>({
     show: false,
     id: '',
     name: '',
   });
+
+  const configuredProviders = Object.entries(settings.providers).filter(([_, p]) => p.status === 'configured');
 
   const handleCreate = () => {
     if (newName.trim()) {
@@ -27,27 +29,20 @@ export function Dashboard() {
     }
   };
 
+  const handleEdit = () => {
+    if (editingNotebook && editingNotebook.name.trim()) {
+      updateNotebook(editingNotebook.id, {
+        name: editingNotebook.name.trim(),
+        description: editingNotebook.description.trim(),
+      });
+      setEditingNotebook(null);
+    }
+  };
+
   const filteredNotebooks = notebooks.filter(n => 
     n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     n.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const configuredProviders = Object.entries(settings.providers).filter(([_, p]) => p.status === 'configured');
-  
-  const currentProvider = configuredProviders.find(([id]) => id === settings.defaultProvider);
-  const currentProviderDef = currentProvider ? PROVIDER_DEFINITIONS[currentProvider[0]] : null;
-  const currentModel = currentProviderDef?.models.find(m => m.id === settings.defaultModel);
-
-  const handleProviderChange = (providerId: string) => {
-    const providerDef = PROVIDER_DEFINITIONS[providerId];
-    if (providerDef && providerDef.models.length > 0) {
-      const firstChatModel = providerDef.models.find(m => m.type === 'chat');
-      if (firstChatModel) {
-        setDefaultModel(providerId, firstChatModel.id);
-      }
-    }
-    setShowProviderSelector(false);
-  };
 
   return (
     <div className="h-full flex flex-col">
@@ -61,117 +56,7 @@ export function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {configuredProviders.length > 0 && (
-            <div className="relative">
-              <button
-                onClick={() => setShowProviderSelector(!showProviderSelector)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-bg-card border border-border rounded-lg hover:border-accent/50 transition-colors"
-              >
-                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-success rounded-full shrink-0" />
-                <div className="text-left hidden sm:block">
-                  <div className="text-xs text-text-primary font-medium">
-                    {currentProviderDef?.icon} {currentProviderDef?.name || 'Provedor'}
-                  </div>
-                  <div className="text-[10px] text-text-muted">
-                    {currentModel?.name || 'Modelo'}
-                  </div>
-                </div>
-                <div className="sm:hidden">
-                  <span className="text-xs text-text-primary font-medium">
-                    {currentProviderDef?.icon}
-                  </span>
-                </div>
-                <ChevronDown className="w-3 h-3 text-text-muted shrink-0" />
-              </button>
-
-              {showProviderSelector && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowProviderSelector(false)}
-                  />
-                  <div className="absolute right-0 top-full mt-2 w-64 sm:w-72 bg-bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
-                    <div className="p-2 border-b border-border">
-                      <p className="text-[10px] text-text-muted uppercase tracking-wider px-2 py-1">
-                        Selecionar Provedor
-                      </p>
-                    </div>
-                    <div className="max-h-80 overflow-y-auto p-1">
-                      {configuredProviders.map(([id, provider]) => {
-                        const providerDef = PROVIDER_DEFINITIONS[id];
-                        const chatModels = providerDef?.models.filter(m => m.type === 'chat') || [];
-                        const isSelected = id === settings.defaultProvider;
-
-                        return (
-                          <div key={id} className="mb-1">
-                            <button
-                              onClick={() => handleProviderChange(id)}
-                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${
-                                isSelected
-                                  ? 'bg-accent/10 border border-accent/30'
-                                  : 'hover:bg-bg-tertiary'
-                              }`}
-                            >
-                              <span className="text-base shrink-0">{providerDef?.icon}</span>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-xs font-medium text-text-primary">
-                                    {providerDef?.name}
-                                  </span>
-                                  {isSelected && (
-                                    <Check className="w-3 h-3 text-accent-light shrink-0" />
-                                  )}
-                                </div>
-                                <div className="text-[10px] text-text-muted truncate">
-                                  {chatModels.length} modelo{chatModels.length !== 1 ? 's' : ''} disponível{chatModels.length !== 1 ? 'is' : ''}
-                                </div>
-                              </div>
-                            </button>
-
-                            {/* Show models if this provider is selected */}
-                            {isSelected && chatModels.length > 0 && (
-                              <div className="ml-8 mt-1 mb-2 space-y-0.5">
-                                {chatModels.slice(0, 3).map((model) => (
-                                  <button
-                                    key={model.id}
-                                    onClick={() => {
-                                      setDefaultModel(id, model.id);
-                                      setShowProviderSelector(false);
-                                    }}
-                                    className={`w-full text-left px-2 py-1 rounded text-[11px] transition-colors ${
-                                      model.id === settings.defaultModel
-                                        ? 'bg-accent/20 text-accent-light font-medium'
-                                        : 'text-text-secondary hover:bg-bg-tertiary'
-                                    }`}
-                                  >
-                                    {model.name}
-                                    {model.id === settings.defaultModel && (
-                                      <Check className="w-3 h-3 inline ml-1" />
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="p-2 border-t border-border">
-                      <button
-                        onClick={() => {
-                          setShowProviderSelector(false);
-                          setPage('settings');
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-xs text-accent-light hover:bg-bg-tertiary rounded-lg transition-colors"
-                      >
-                        + Configurar provedores
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <ProviderSelector />
         </div>
       </header>
 
@@ -238,11 +123,50 @@ export function Dashboard() {
           </div>
         )}
 
+        {/* Edit Modal */}
+        {editingNotebook && (
+          <div className="mb-6 p-4 bg-bg-card border border-accent/30 rounded-xl animate-fade-in">
+            <h3 className="text-sm font-semibold mb-3">Editar Notebook</h3>
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={editingNotebook.name}
+                onChange={(e) => setEditingNotebook({ ...editingNotebook, name: e.target.value })}
+                placeholder="Nome do notebook"
+                className="w-full px-3 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleEdit()}
+              />
+              <input
+                type="text"
+                value={editingNotebook.description}
+                onChange={(e) => setEditingNotebook({ ...editingNotebook, description: e.target.value })}
+                placeholder="Descrição (opcional)"
+                className="w-full px-3 py-2 bg-bg-secondary border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleEdit}
+                  className="px-4 py-2 bg-accent hover:bg-accent-dark text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={() => setEditingNotebook(null)}
+                  className="px-4 py-2 text-text-secondary hover:text-text-primary text-sm transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Notebooks Grid */}
         {filteredNotebooks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-bg-secondary rounded-2xl flex items-center justify-center mb-4">
-              <BookOpen className="w-10 h-10 text-text-muted" />
+              <Plus className="w-10 h-10 text-text-muted" />
             </div>
             <h3 className="text-lg font-semibold mb-2">
               {searchQuery ? 'Nenhum notebook encontrado' : 'Nenhum notebook ainda'}
@@ -275,16 +199,32 @@ export function Dashboard() {
                   >
                     {notebook.icon}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteConfirm({ show: true, id: notebook.id, name: notebook.name });
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 text-text-muted hover:text-error rounded transition-all"
-                    title="Excluir notebook"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingNotebook({
+                          id: notebook.id,
+                          name: notebook.name,
+                          description: notebook.description,
+                        });
+                      }}
+                      className="p-1.5 text-text-muted hover:text-accent-light rounded transition-all"
+                      title="Editar notebook"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm({ show: true, id: notebook.id, name: notebook.name });
+                      }}
+                      className="p-1.5 text-text-muted hover:text-error rounded transition-all"
+                      title="Excluir notebook"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <h3 className="font-semibold text-sm mb-1 truncate">{notebook.name}</h3>
                 {notebook.description && (

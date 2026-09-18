@@ -7,6 +7,7 @@ import {
   Shield, Loader2, Plus, ChevronDown, ChevronUp, Database
 } from 'lucide-react';
 import { DataManagement } from './DataManagement';
+import { ProviderSelector } from './ProviderSelector';
 
 export function Settings() {
   const {
@@ -39,11 +40,12 @@ export function Settings() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0 pl-14 lg:pl-6">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0 pl-14 lg:pl-6">
         <div className="min-w-0">
           <h1 className="text-base sm:text-lg font-bold">Configurações</h1>
           <p className="text-[10px] sm:text-xs text-text-muted">Gerencie provedores de IA e preferências</p>
         </div>
+        <ProviderSelector />
       </header>
 
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 max-w-3xl mx-auto w-full">
