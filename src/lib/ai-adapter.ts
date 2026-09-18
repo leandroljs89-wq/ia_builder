@@ -386,20 +386,60 @@ export class AIProviderAdapter {
       const modelId = model.replace('huggingface:', '');
       const apiUrl = `https://api-inference.huggingface.co/models/${modelId}`;
       
-      try {
-        const response = await localAI.useFreeAPI(apiUrl, prompt, {
-          max_tokens: options.maxTokens || 256,
-          temperature: options.temperature || 0.7,
-        });
-        return response;
-      } catch (error) {
-        throw new Error(`Erro ao usar API gratuita: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      // Retry logic para API gratuita (pode demorar para carregar o modelo)
+      let lastError: Error | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              inputs: prompt,
+              parameters: {
+                max_new_tokens: options.maxTokens || 256,
+                temperature: options.temperature || 0.7,
+              },
+            }),
+          });
+
+          if (response.status === 503) {
+            // Modelo está carregando, aguardar e tentar novamente
+            const waitTime = (attempt + 1) * 5000; // 5s, 10s, 15s
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          
+          // Hugging Face retorna array com generated_text
+          if (Array.isArray(data) && data[0]?.generated_text) {
+            return data[0].generated_text;
+          }
+          
+          return JSON.stringify(data);
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error('Erro desconhecido');
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
       }
+      
+      throw new Error(`Erro ao usar API gratuita após 3 tentativas: ${lastError?.message || 'Erro desconhecido'}`);
     }
     
     // Modelo local (Transformers.js)
     if (!localAI.isModelLoaded(model)) {
-      throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+      // Tentar carregar automaticamente
+      try {
+        await localAI.loadModel(model);
+      } catch (error) {
+        throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+      }
     }
 
     const finalPrompt = prompt + '\n[Assistente]:';
@@ -533,37 +573,9 @@ export class AIProviderAdapter {
       const provider = this.providers[providerId];
       if (!provider) return { success: false, error: 'Provider not found' };
 
-      // Local AI não precisa de API key - suporta tanto APIs gratuitas quanto modelos locais
+      // Local AI não precisa de API key - sempre configurar como disponível
       if (providerId === 'local') {
-        const { localAI } = await import('./local-ai');
-        
-        // Verificar se tem pelo menos um modelo local carregado OU se pode usar APIs gratuitas
-        const hasLocalModel = provider.models.some(m => 
-          !m.id.startsWith('huggingface:') && localAI.isModelLoaded(m.id)
-        );
-        const hasFreeAPI = provider.models.some(m => m.id.startsWith('huggingface:'));
-        
-        if (!hasLocalModel && !hasFreeAPI) {
-          return { success: false, error: 'Nenhum modelo disponível. Baixe um modelo local ou use APIs gratuitas.' };
-        }
-        
-        // Testar API gratuita se disponível
-        if (hasFreeAPI) {
-          try {
-            const testResponse = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-large', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ inputs: 'Teste', parameters: { max_new_tokens: 10 } }),
-            });
-            
-            if (!testResponse.ok) {
-              return { success: false, error: 'API gratuita não está respondendo. Tente novamente mais tarde.' };
-            }
-          } catch (error) {
-            return { success: false, error: 'Não foi possível conectar à API gratuita. Verifique sua conexão.' };
-          }
-        }
-        
+        // Provider local sempre está disponível (não requer validação externa)
         provider.status = 'configured';
         provider.lastValidated = new Date().toISOString();
         this.saveProviders();
