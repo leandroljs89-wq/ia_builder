@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Plus, BookOpen, Settings, Search, Trash2, MoreVertical } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 
 export function Dashboard() {
   const { notebooks, createNotebook, deleteNotebook, setPage, settings } = useStore();
@@ -8,6 +9,11 @@ export function Dashboard() {
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string; name: string }>({
+    show: false,
+    id: '',
+    name: '',
+  });
 
   const handleCreate = () => {
     if (newName.trim()) {
@@ -157,9 +163,10 @@ export function Dashboard() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (confirm('Excluir este notebook?')) deleteNotebook(notebook.id);
+                      setDeleteConfirm({ show: true, id: notebook.id, name: notebook.name });
                     }}
                     className="opacity-0 group-hover:opacity-100 p-1.5 text-text-muted hover:text-error rounded transition-all"
+                    title="Excluir notebook"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -180,6 +187,21 @@ export function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Excluir Notebook"
+        message={`Tem certeza que deseja excluir "${deleteConfirm.name}"? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        danger={true}
+        onConfirm={() => {
+          deleteNotebook(deleteConfirm.id);
+          setDeleteConfirm({ show: false, id: '', name: '' });
+        }}
+        onCancel={() => setDeleteConfirm({ show: false, id: '', name: '' })}
+      />
     </div>
   );
 }

@@ -5,13 +5,22 @@ import { NotebookView } from './components/NotebookView';
 import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Toast } from './components/Toast';
+import { runMigrations } from './lib/migrations';
 
 export default function App() {
-  const { currentPage, settings, loadState } = useStore();
+  const { currentPage, settings, loadState, showToast } = useStore();
 
   useEffect(() => {
     loadState();
-  }, [loadState]);
+    
+    // Run migrations to update deprecated models
+    const { migrated, changes } = runMigrations();
+    if (migrated && changes.length > 0) {
+      // Reload state after migration
+      loadState();
+      showToast('info', 'Modelos atualizados automaticamente');
+    }
+  }, [loadState, showToast]);
 
   const renderPage = () => {
     if (!settings.onboardingComplete) {

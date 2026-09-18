@@ -4,6 +4,7 @@ import {
   Plus, FileText, Globe, Youtube, Upload, Trash2,
   Eye, EyeOff, Loader2, CheckCircle, AlertCircle, Clock, X
 } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 
 interface Props {
   notebookId: string;
@@ -17,6 +18,11 @@ export function SourceManager({ notebookId }: Props) {
   const [sourceName, setSourceName] = useState('');
   const [sourceContent, setSourceContent] = useState('');
   const [viewSource, setViewSource] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string; name: string }>({
+    show: false,
+    id: '',
+    name: '',
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!notebook) return null;
@@ -227,7 +233,7 @@ export function SourceManager({ notebookId }: Props) {
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm('Remover esta fonte?')) removeSource(notebookId, source.id);
+                    setDeleteConfirm({ show: true, id: source.id, name: source.name });
                   }}
                   className="p-1.5 text-text-muted hover:text-error transition-colors"
                   title="Remover"
@@ -266,6 +272,21 @@ export function SourceManager({ notebookId }: Props) {
           </button>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Remover Fonte"
+        message={`Tem certeza que deseja remover "${deleteConfirm.name}"? Esta ação não pode ser desfeita.`}
+        confirmLabel="Remover"
+        cancelLabel="Cancelar"
+        danger={true}
+        onConfirm={() => {
+          removeSource(notebookId, deleteConfirm.id);
+          setDeleteConfirm({ show: false, id: '', name: '' });
+        }}
+        onCancel={() => setDeleteConfirm({ show: false, id: '', name: '' })}
+      />
     </div>
   );
 }

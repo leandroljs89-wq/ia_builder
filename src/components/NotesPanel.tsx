@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Plus, Trash2, Edit3, Check, X, FileText, Sparkles } from 'lucide-react';
+import { ConfirmModal } from './ConfirmModal';
 
 interface Props {
   notebookId: string;
@@ -15,6 +16,11 @@ export function NotesPanel({ notebookId }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string; name: string }>({
+    show: false,
+    id: '',
+    name: '',
+  });
 
   if (!notebook) return null;
 
@@ -170,7 +176,7 @@ export function NotesPanel({ notebookId }: Props) {
                     </button>
                     <button
                       onClick={() => {
-                        if (confirm('Excluir esta nota?')) deleteNote(notebookId, note.id);
+                        setDeleteConfirm({ show: true, id: note.id, name: note.title });
                       }}
                       className="p-1 text-text-muted hover:text-error transition-colors"
                       title="Excluir"
@@ -208,6 +214,21 @@ export function NotesPanel({ notebookId }: Props) {
           </button>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteConfirm.show}
+        title="Excluir Nota"
+        message={`Tem certeza que deseja excluir "${deleteConfirm.name}"? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        danger={true}
+        onConfirm={() => {
+          deleteNote(notebookId, deleteConfirm.id);
+          setDeleteConfirm({ show: false, id: '', name: '' });
+        }}
+        onCancel={() => setDeleteConfirm({ show: false, id: '', name: '' })}
+      />
     </div>
   );
 }
