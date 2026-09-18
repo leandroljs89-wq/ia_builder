@@ -308,6 +308,11 @@ export const useStore = create<AppState>((set, get) => ({
       return;
     }
 
+    // Notificar usuário se estiver usando modelo local (pode demorar para carregar)
+    if (provider === 'local' && !model.startsWith('huggingface:')) {
+      get().showToast('info', 'Carregando modelo local... Isso pode demorar alguns minutos na primeira vez.');
+    }
+
     // Add user message
     const userMsg: ChatMessage = {
       id: uuidv4(),
