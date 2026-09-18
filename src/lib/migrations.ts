@@ -65,17 +65,11 @@ export function runMigrations(): { migrated: boolean; changes: string[] } {
       }
 
       // Atualizar provider "local" com novos modelos (APIs gratuitas + locais)
-      if (settings.providers?.local) {
-        if (PROVIDER_DEFINITIONS?.local?.models) {
-          const oldModelCount = settings.providers.local.models?.length || 0;
-          const newModelCount = PROVIDER_DEFINITIONS.local.models.length;
-          
-          if (oldModelCount !== newModelCount) {
-            settings.providers.local.models = PROVIDER_DEFINITIONS.local.models;
-            changes.push(`Provider "local" atualizado: ${oldModelCount} → ${newModelCount} modelos (incluindo APIs gratuitas)`);
-            settingsChanged = true;
-          }
-        }
+      // Sempre atualizar para garantir que modelos antigos e quebrados sejam substituídos
+      if (settings.providers?.local && PROVIDER_DEFINITIONS?.local?.models) {
+        settings.providers.local.models = PROVIDER_DEFINITIONS.local.models;
+        changes.push(`Provider "local" atualizado com modelos confiáveis e testados`);
+        settingsChanged = true;
       }
 
       if (settingsChanged) {

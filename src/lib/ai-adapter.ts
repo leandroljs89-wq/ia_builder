@@ -116,9 +116,10 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     apiKeyPrefix: '',
     apiKeyUrl: '#local-ai',
     models: [
-      // Modelos locais (offline)
-      { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
-      { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini (Local)', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
+      // Modelos locais (offline) - modelos confiáveis e testados
+      { id: 'Xenova/distilgpt2', name: 'DistilGPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+      { id: 'Xenova/LaMini-Flan-T5-248M', name: 'LaMini Flan-T5 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 512 },
+      { id: 'Xenova/gpt2', name: 'GPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 1024 },
       { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings (Local)', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
       // APIs gratuitas (online)
       { id: 'huggingface:microsoft/DialoGPT-large', name: 'DialoGPT (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },

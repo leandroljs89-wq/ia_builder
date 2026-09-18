@@ -710,7 +710,7 @@ export const useStore = create<AppState>((set, get) => ({
       if (settings) {
         const parsedSettings = JSON.parse(settings);
         
-        // Garantir que o provider "local" esteja sempre configurado
+        // Garantir que o provider "local" esteja sempre configurado com modelos atualizados
         if (!parsedSettings.providers?.local || parsedSettings.providers.local.status !== 'configured') {
           parsedSettings.providers = {
             ...parsedSettings.providers,
@@ -721,8 +721,9 @@ export const useStore = create<AppState>((set, get) => ({
               baseUrl: 'local',
               apiKey: '',
               models: [
-                { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
-                { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini (Local)', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
+                { id: 'Xenova/distilgpt2', name: 'DistilGPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+                { id: 'Xenova/LaMini-Flan-T5-248M', name: 'LaMini Flan-T5 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 512 },
+                { id: 'Xenova/gpt2', name: 'GPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 1024 },
                 { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings (Local)', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
                 { id: 'huggingface:microsoft/DialoGPT-large', name: 'DialoGPT (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
                 { id: 'huggingface:facebook/blenderbot-400M-distill', name: 'BlenderBot (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
@@ -731,6 +732,16 @@ export const useStore = create<AppState>((set, get) => ({
               lastValidated: new Date().toISOString(),
             },
           };
+        } else {
+          // Sempre atualizar os modelos para garantir que estão usando os confiáveis
+          parsedSettings.providers.local.models = [
+            { id: 'Xenova/distilgpt2', name: 'DistilGPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+            { id: 'Xenova/LaMini-Flan-T5-248M', name: 'LaMini Flan-T5 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 512 },
+            { id: 'Xenova/gpt2', name: 'GPT-2 (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 1024 },
+            { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings (Local)', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
+            { id: 'huggingface:microsoft/DialoGPT-large', name: 'DialoGPT (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+            { id: 'huggingface:facebook/blenderbot-400M-distill', name: 'BlenderBot (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+          ];
         }
         
         set({ settings: parsedSettings });
