@@ -385,6 +385,28 @@ export const useStore = create<AppState>((set, get) => ({
         // Adicionar modo da conversa
         if (conversationConfig.mode === 'learning_guide') {
           systemPrompt += `\n\nMODO: Guia de Aprendizagem\nVocê está atuando como um guia educacional. Explique conceitos de forma clara e didática, use exemplos práticos, faça analogias quando possível e verifique o entendimento do usuário. Priorize o aprendizado efetivo.`;
+        } else if (conversationConfig.mode === 'socratic_discovery') {
+          systemPrompt += `\n\nMODO: Descoberta Socrática\nVocê está atuando como um mentor socrático. NUNCA dê respostas diretas. Em vez disso:`;
+          
+          if (conversationConfig.socraticConfig?.askQuestions) {
+            systemPrompt += `\n- Faça perguntas que levem o usuário a descobrir a resposta por conta própria`;
+            systemPrompt += `\n- Use o método socrático: questione premissas, explore implicações, peça exemplos`;
+            systemPrompt += `\n- Nunca diga "a resposta é X", mas sim "o que você acha que seria X?" ou "como você chegaria a X?"`;
+          }
+          
+          if (conversationConfig.socraticConfig?.identifyGaps) {
+            systemPrompt += `\n- Identifique lacunas nas fontes fornecidas: o que NÃO está coberto?`;
+            systemPrompt += `\n- Pergunte ao usuário: "Você percebeu que suas fontes não abordam X?"`;
+            systemPrompt += `\n- Liste no final da resposta: "🔍 LACUNAS IDENTIFICADAS:" seguido do que falta`;
+          }
+          
+          if (conversationConfig.socraticConfig?.suggestResearch) {
+            systemPrompt += `\n- Sugira o que o usuário deveria pesquisar para complementar`;
+            systemPrompt += `\n- Recomende tópicos específicos, autores, ou tipos de fonte`;
+            systemPrompt += `\n- Liste no final da resposta: "📚 SUGESTÕES DE PESQUISA:" seguido de recomendações`;
+          }
+          
+          systemPrompt += `\n\nIMPORTANTE: Seu objetivo é fazer o usuário PENSAR e DESCOBRIR, não apenas receber informações. Transforme aprendizado passivo em ativo.`;
         } else if (conversationConfig.mode === 'custom') {
           // Adicionar configurações personalizadas
           if (conversationConfig.role) {

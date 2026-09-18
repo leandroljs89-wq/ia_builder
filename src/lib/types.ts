@@ -136,7 +136,7 @@ export interface NotebookSettings {
   conversationConfig?: ConversationConfig;
 }
 
-export type ConversationMode = 'default' | 'learning_guide' | 'custom';
+export type ConversationMode = 'default' | 'learning_guide' | 'socratic_discovery' | 'custom';
 export type ResponseLength = 'short' | 'default' | 'long';
 
 export interface ConversationConfig {
@@ -145,6 +145,11 @@ export interface ConversationConfig {
   customInstructions?: string;
   role?: string;
   tone?: string;
+  socraticConfig?: {
+    askQuestions: boolean;
+    identifyGaps: boolean;
+    suggestResearch: boolean;
+  };
 }
 
 export interface ProviderRegistry {
