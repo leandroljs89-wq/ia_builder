@@ -141,6 +141,24 @@ export class AIProviderAdapter {
       if (stored) {
         this.providers = JSON.parse(stored);
       }
+      
+      // Garantir que provider "local" esteja sempre configurado
+      if (!this.providers['local'] || this.providers['local'].status !== 'configured') {
+        const localDef = PROVIDER_DEFINITIONS['local'];
+        if (localDef) {
+          this.providers['local'] = {
+            id: 'local',
+            name: localDef.name,
+            icon: localDef.icon,
+            baseUrl: localDef.baseUrl,
+            apiKey: '',
+            models: localDef.models,
+            status: 'configured',
+            lastValidated: new Date().toISOString(),
+          };
+          this.saveProviders();
+        }
+      }
     } catch (e) {
       console.error('Failed to load providers:', e);
     }
@@ -184,6 +202,9 @@ export class AIProviderAdapter {
     const def = PROVIDER_DEFINITIONS[id];
     if (!def) throw new Error(`Unknown provider: ${id}`);
     
+    // Provider "local" não precisa de API key, sempre configurado
+    const status = id === 'local' ? 'configured' : (config.apiKey ? 'configured' : 'unconfigured');
+    
     this.providers[id] = {
       id,
       name: def.name,
@@ -191,7 +212,7 @@ export class AIProviderAdapter {
       baseUrl: config.baseUrl || def.baseUrl,
       apiKey: config.apiKey || '',
       models: def.models,
-      status: config.apiKey ? 'configured' : 'unconfigured',
+      status,
       lastValidated: config.lastValidated,
     };
     this.saveProviders();
@@ -219,7 +240,8 @@ export class AIProviderAdapter {
     if (!provider) throw new Error(`Provider ${providerId} not configured`);
     
     const apiKey = decryptKey(provider.apiKey);
-    if (!apiKey && providerId !== 'ollama') {
+    // Provider "local" e "ollama" não precisam de API key
+    if (!apiKey && providerId !== 'ollama' && providerId !== 'local') {
       throw new Error(`API key not set for ${provider.name}`);
     }
 
