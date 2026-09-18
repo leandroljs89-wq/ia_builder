@@ -110,15 +110,19 @@ export const PROVIDER_DEFINITIONS: Record<string, {
     ]
   },
   local: {
-    name: 'IA Local',
+    name: 'IA Local & Gratuita',
     icon: '📱',
     baseUrl: 'local',
     apiKeyPrefix: '',
     apiKeyUrl: '#local-ai',
     models: [
-      { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
-      { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
-      { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
+      // Modelos locais (offline)
+      { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B (Local)', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
+      { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini (Local)', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
+      { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings (Local)', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
+      // APIs gratuitas (online)
+      { id: 'huggingface:microsoft/DialoGPT-large', name: 'DialoGPT (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
+      { id: 'huggingface:facebook/blenderbot-400M-distill', name: 'BlenderBot (Gratuito)', provider: 'local', type: 'chat', maxTokens: 256, contextWindow: 1024 },
     ]
   },
 };
@@ -359,7 +363,7 @@ export class AIProviderAdapter {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
-  // ---- Local AI (Transformers.js) ----
+  // ---- Local AI (Transformers.js + Free APIs) ----
   private async callLocalAI(
     model: string,
     messages: { role: string; content: string }[],
@@ -367,11 +371,6 @@ export class AIProviderAdapter {
   ): Promise<string> {
     const { localAI } = await import('./local-ai');
     
-    // Verificar se modelo está carregado
-    if (!localAI.isModelLoaded(model)) {
-      throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
-    }
-
     // Construir prompt a partir das mensagens
     const prompt = messages
       .map(m => {
@@ -381,6 +380,27 @@ export class AIProviderAdapter {
         return m.content;
       })
       .join('\n\n');
+
+    // Verificar se é API gratuita (prefixo "huggingface:")
+    if (model.startsWith('huggingface:')) {
+      const modelId = model.replace('huggingface:', '');
+      const apiUrl = `https://api-inference.huggingface.co/models/${modelId}`;
+      
+      try {
+        const response = await localAI.useFreeAPI(apiUrl, prompt, {
+          max_tokens: options.maxTokens || 256,
+          temperature: options.temperature || 0.7,
+        });
+        return response;
+      } catch (error) {
+        throw new Error(`Erro ao usar API gratuita: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      }
+    }
+    
+    // Modelo local (Transformers.js)
+    if (!localAI.isModelLoaded(model)) {
+      throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+    }
 
     const finalPrompt = prompt + '\n[Assistente]:';
 
@@ -513,13 +533,37 @@ export class AIProviderAdapter {
       const provider = this.providers[providerId];
       if (!provider) return { success: false, error: 'Provider not found' };
 
-      // Local AI não precisa de API key
+      // Local AI não precisa de API key - suporta tanto APIs gratuitas quanto modelos locais
       if (providerId === 'local') {
         const { localAI } = await import('./local-ai');
-        const hasAnyModel = provider.models.some(m => localAI.isModelLoaded(m.id));
-        if (!hasAnyModel) {
-          return { success: false, error: 'Nenhum modelo local carregado. Vá em Configurações > IA Local para baixar.' };
+        
+        // Verificar se tem pelo menos um modelo local carregado OU se pode usar APIs gratuitas
+        const hasLocalModel = provider.models.some(m => 
+          !m.id.startsWith('huggingface:') && localAI.isModelLoaded(m.id)
+        );
+        const hasFreeAPI = provider.models.some(m => m.id.startsWith('huggingface:'));
+        
+        if (!hasLocalModel && !hasFreeAPI) {
+          return { success: false, error: 'Nenhum modelo disponível. Baixe um modelo local ou use APIs gratuitas.' };
         }
+        
+        // Testar API gratuita se disponível
+        if (hasFreeAPI) {
+          try {
+            const testResponse = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-large', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ inputs: 'Teste', parameters: { max_new_tokens: 10 } }),
+            });
+            
+            if (!testResponse.ok) {
+              return { success: false, error: 'API gratuita não está respondendo. Tente novamente mais tarde.' };
+            }
+          } catch (error) {
+            return { success: false, error: 'Não foi possível conectar à API gratuita. Verifique sua conexão.' };
+          }
+        }
+        
         provider.status = 'configured';
         provider.lastValidated = new Date().toISOString();
         this.saveProviders();

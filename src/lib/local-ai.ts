@@ -1,7 +1,7 @@
 /**
- * Local AI Provider - Transformers.js
+ * Local AI Provider - Transformers.js + Free APIs
  * Roda modelos de IA diretamente no navegador/celular sem API key
- * Usa WebAssembly/WebGPU para inferência local
+ * Suporta tanto IA local (offline) quanto APIs gratuitas (online)
  */
 
 import { pipeline, env } from '@huggingface/transformers';
@@ -9,6 +9,20 @@ import { pipeline, env } from '@huggingface/transformers';
 // Configurar para usar cache do navegador
 env.allowLocalModels = false;
 env.useBrowserCache = true;
+
+// APIs gratuitas que não precisam de API key
+export const FREE_APIS = [
+  {
+    id: 'huggingface-free',
+    name: 'Hugging Face (Gratuito)',
+    description: 'API gratuita do Hugging Face - sem API key',
+    baseUrl: 'https://api-inference.huggingface.co/models',
+    models: [
+      { id: 'microsoft/DialoGPT-large', name: 'DialoGPT Large', type: 'chat' },
+      { id: 'facebook/blenderbot-400M-distill', name: 'BlenderBot 400M', type: 'chat' },
+    ],
+  },
+];
 
 export interface LocalModel {
   id: string;
@@ -165,6 +179,47 @@ class LocalAIProvider {
     const model = LOCAL_MODELS.find(m => m.id === modelId);
     if (model) {
       model.downloaded = false;
+    }
+  }
+
+  /**
+   * Usar API gratuita online (sem API key)
+   */
+  async useFreeAPI(
+    apiUrl: string,
+    prompt: string,
+    options: { max_tokens?: number; temperature?: number } = {}
+  ): Promise<string> {
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: options.max_tokens || 256,
+            temperature: options.temperature || 0.7,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Hugging Face retorna array com generated_text
+      if (Array.isArray(data) && data[0]?.generated_text) {
+        return data[0].generated_text;
+      }
+      
+      return JSON.stringify(data);
+    } catch (error) {
+      console.error('Erro ao usar API gratuita:', error);
+      throw error;
     }
   }
 
