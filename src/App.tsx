@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
 import { Dashboard } from './components/Dashboard';
 import { NotebookView } from './components/NotebookView';
@@ -6,12 +6,35 @@ import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Toast } from './components/Toast';
 import { Sidebar } from './components/Sidebar';
+import { AuthPage } from './components/AuthPage';
 import { runMigrations } from './lib/migrations';
+import { supabase } from './lib/supabase';
+import './lib/test-supabase'; // Importar script de teste
 
 export default function App() {
   const { currentPage, settings, loadState, showToast, setPage } = useStore();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Verificar sessão atual
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Escutar mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          console.log('✅ Usuário logado:', session.user.email);
+          // Carregar dados do Supabase quando logar
+          loadState();
+        }
+      }
+    );
+
     loadState().then(() => {
       // Run migrations to update deprecated models
       const { migrated, changes } = runMigrations();
@@ -30,9 +53,16 @@ export default function App() {
         });
       });
     }
+
+    return () => subscription.unsubscribe();
   }, [loadState, showToast]);
 
   const renderPage = () => {
+    // Mostrar tela de login se não estiver autenticado
+    if (!user) {
+      return <AuthPage />;
+    }
+
     if (!settings.onboardingComplete) {
       return <Onboarding />;
     }
