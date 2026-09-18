@@ -109,6 +109,18 @@ export const PROVIDER_DEFINITIONS: Record<string, {
       { id: 'meta-llama/llama-3.3-70b-instruct', name: 'Llama 3.3 70B (via OR)', provider: 'openrouter', type: 'chat', maxTokens: 32768, contextWindow: 128000 },
     ]
   },
+  local: {
+    name: 'IA Local',
+    icon: '📱',
+    baseUrl: 'local',
+    apiKeyPrefix: '',
+    apiKeyUrl: '#local-ai',
+    models: [
+      { id: 'Xenova/Qwen2.5-0.5B-Instruct', name: 'Qwen 2.5 0.5B', provider: 'local', type: 'chat', maxTokens: 512, contextWindow: 2048 },
+      { id: 'Xenova/Phi-3-mini-4k-instruct', name: 'Phi-3 Mini', provider: 'local', type: 'chat', maxTokens: 1024, contextWindow: 4096 },
+      { id: 'Xenova/all-MiniLM-L6-v2', name: 'MiniLM Embeddings', provider: 'local', type: 'embedding', maxTokens: 512, contextWindow: 512 },
+    ]
+  },
 };
 
 // ---- AI Provider Adapter Class ----
@@ -218,6 +230,8 @@ export class AIProviderAdapter {
         return this.callAnthropic(apiKey, modelId, fullMessages, options);
       case 'google':
         return this.callGemini(apiKey, modelId, fullMessages, options);
+      case 'local':
+        return this.callLocalAI(modelId, fullMessages, options);
       default:
         return this.callOpenAICompatible(provider.baseUrl, apiKey, modelId, fullMessages, options);
     }
@@ -345,6 +359,40 @@ export class AIProviderAdapter {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
   }
 
+  // ---- Local AI (Transformers.js) ----
+  private async callLocalAI(
+    model: string,
+    messages: { role: string; content: string }[],
+    options: { temperature?: number; maxTokens?: number }
+  ): Promise<string> {
+    const { localAI } = await import('./local-ai');
+    
+    // Verificar se modelo está carregado
+    if (!localAI.isModelLoaded(model)) {
+      throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+    }
+
+    // Construir prompt a partir das mensagens
+    const prompt = messages
+      .map(m => {
+        if (m.role === 'system') return `[Sistema]: ${m.content}`;
+        if (m.role === 'user') return `[Usuário]: ${m.content}`;
+        if (m.role === 'assistant') return `[Assistente]: ${m.content}`;
+        return m.content;
+      })
+      .join('\n\n');
+
+    const finalPrompt = prompt + '\n[Assistente]:';
+
+    // Gerar resposta
+    const response = await localAI.generate(model, finalPrompt, {
+      max_tokens: options.maxTokens || 512,
+      temperature: options.temperature || 0.7,
+    });
+
+    return response;
+  }
+
   // ---- Stream Handler ----
   private async handleStream(response: Response, onChunk: (chunk: string) => void): Promise<string> {
     const reader = response.body!.getReader();
@@ -390,6 +438,10 @@ export class AIProviderAdapter {
 
     if (providerId === 'google') {
       return this.embedGemini(apiKey, modelId, texts);
+    }
+
+    if (providerId === 'local') {
+      return this.embedLocal(modelId, texts);
     }
 
     // OpenAI compatible embedding
@@ -444,11 +496,35 @@ export class AIProviderAdapter {
     return results;
   }
 
+  // ---- Local Embeddings (Transformers.js) ----
+  private async embedLocal(model: string, texts: string[]): Promise<number[][]> {
+    const { localAI } = await import('./local-ai');
+    
+    if (!localAI.isModelLoaded(model)) {
+      throw new Error(`Modelo de embeddings local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+    }
+
+    return localAI.embed(model, texts);
+  }
+
   // ---- Validation ----
   async validateProvider(providerId: string): Promise<{ success: boolean; error?: string }> {
     try {
       const provider = this.providers[providerId];
       if (!provider) return { success: false, error: 'Provider not found' };
+
+      // Local AI não precisa de API key
+      if (providerId === 'local') {
+        const { localAI } = await import('./local-ai');
+        const hasAnyModel = provider.models.some(m => localAI.isModelLoaded(m.id));
+        if (!hasAnyModel) {
+          return { success: false, error: 'Nenhum modelo local carregado. Vá em Configurações > IA Local para baixar.' };
+        }
+        provider.status = 'configured';
+        provider.lastValidated = new Date().toISOString();
+        this.saveProviders();
+        return { success: true };
+      }
 
       const apiKey = decryptKey(provider.apiKey);
       if (!apiKey && providerId !== 'ollama') {

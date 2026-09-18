@@ -4,10 +4,11 @@ import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
 import { maskKey } from '../lib/crypto';
 import {
   Key, Check, Trash2, ExternalLink,
-  Shield, Loader2, Plus, ChevronDown, ChevronUp, Database
+  Shield, Loader2, Plus, ChevronDown, ChevronUp, Database, Cpu, X
 } from 'lucide-react';
 import { DataManagement } from './DataManagement';
 import { ProviderSelector } from './ProviderSelector';
+import { LocalAIConfig } from './LocalAIConfig';
 
 export function Settings() {
   const {
@@ -19,6 +20,7 @@ export function Settings() {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [validating, setValidating] = useState<string | null>(null);
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
+  const [showLocalAI, setShowLocalAI] = useState(false);
 
   const handleSaveKey = (providerId: string) => {
     if (apiKeyInput.trim()) {
@@ -105,6 +107,26 @@ export function Settings() {
         {/* Providers */}
         <section>
           <h2 className="text-sm font-semibold mb-3">Provedores de IA</h2>
+          
+          {/* Local AI Button */}
+          <button
+            onClick={() => setShowLocalAI(true)}
+            className="w-full mb-3 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/30 rounded-xl hover:border-purple-500/50 transition-all text-left group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition-colors">
+                <Cpu className="w-5 h-5 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-white">📱 IA Local (Sem API Key)</h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Rode modelos diretamente no seu celular • Funciona offline • Total privacidade
+                </p>
+              </div>
+              <ChevronDown className="w-5 h-5 text-slate-400" />
+            </div>
+          </button>
+
           <div className="space-y-2">
             {Object.entries(PROVIDER_DEFINITIONS).map(([id, def]) => {
               const isConfigured = settings.providers[id]?.status === 'configured';
@@ -268,13 +290,45 @@ export function Settings() {
         <section className="mt-8 p-4 bg-bg-card border border-border rounded-xl">
           <h3 className="text-sm font-semibold mb-2">🏗️ Arquitetura do Sistema</h3>
           <div className="text-xs text-text-secondary space-y-2">
-            <p><strong>Camada de Abstração:</strong> AIProviderAdapter unifica OpenAI, Anthropic, Gemini, Groq, Mistral, Ollama e OpenRouter.</p>
+            <p><strong>Camada de Abstração:</strong> AIProviderAdapter unifica OpenAI, Anthropic, Gemini, Groq, Mistral, Ollama, OpenRouter e IA Local.</p>
             <p><strong>RAG Pipeline:</strong> Chunking → Embedding → Busca Vetorial (cosine similarity) → Contexto → Geração com citações.</p>
             <p><strong>Persistência:</strong> localStorage com chaves criptografadas (XOR + Base64). Em produção: PostgreSQL + AES-256.</p>
             <p><strong>Segurança:</strong> Keys nunca expostas em logs. Proxy backend recomendado para produção.</p>
           </div>
         </section>
       </main>
+
+      {/* Local AI Modal */}
+      {showLocalAI && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLocalAI(false)}
+          />
+          <div className="relative bg-bg-card border border-border rounded-xl p-6 max-w-2xl w-full max-h-[90vh] flex flex-col animate-fade-in shadow-2xl">
+            <button
+              onClick={() => setShowLocalAI(false)}
+              className="absolute top-3 right-3 p-1 text-text-muted hover:text-text-primary transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                <Cpu className="w-6 h-6 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">IA Local</h3>
+                <p className="text-xs text-text-muted">Baixe e gerencie modelos de IA para rodar no dispositivo</p>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              <LocalAIConfig />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
