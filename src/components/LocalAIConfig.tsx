@@ -73,9 +73,14 @@ export function LocalAIConfig() {
       setModels(prev => prev.map(m => 
         m.id === modelId ? { ...m, downloaded: true } : m
       ));
+      
+      // Mostrar mensagem de sucesso
+      const model = LOCAL_MODELS.find(m => m.id === modelId);
+      alert(`✅ Modelo "${model?.name}" carregado com sucesso!\n\nAgora você pode usá-lo no chat.`);
     } catch (error) {
       console.error('Erro ao carregar modelo:', error);
-      alert('Erro ao carregar modelo. Verifique sua conexão e tente novamente.');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      alert(`❌ Erro ao carregar modelo\n\n${errorMessage}\n\nSugestões:\n1. Verifique sua conexão com a internet\n2. Tente novamente\n3. Use as APIs gratuitas (DialoGPT ou BlenderBot) que não precisam de download`);
     } finally {
       setLoadingModel(null);
     }

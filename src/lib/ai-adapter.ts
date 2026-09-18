@@ -455,12 +455,54 @@ export class AIProviderAdapter {
     }
     
     // Modelo local (Transformers.js)
+    // Sempre tentar carregar automaticamente (pode estar em cache mas não na memória)
     if (!localAI.isModelLoaded(model)) {
-      // Tentar carregar automaticamente
       try {
-        await localAI.loadModel(model);
+        console.log(`[Local AI] Carregando modelo ${model} automaticamente...`);
+        console.log(`[Local AI] Isso pode demorar alguns minutos na primeira vez...`);
+        
+        await localAI.loadModel(model, (progress) => {
+          console.log(`[Local AI] Progresso do download: ${progress}%`);
+        });
+        
+        console.log(`[Local AI] Modelo ${model} carregado com sucesso!`);
       } catch (error) {
-        throw new Error(`Modelo local "${model}" não carregado. Vá em Configurações > IA Local para baixá-lo.`);
+        console.error(`[Local AI] Erro ao carregar modelo ${model}:`, error);
+        
+        // Fornecer mensagem de erro mais clara e útil
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        
+        // Sugerir alternativas se o download falhar
+        if (errorMessage.includes('Timeout') || errorMessage.includes('rede') || errorMessage.includes('NetworkError')) {
+          throw new Error(
+            `Não foi possível baixar o modelo local "${model}".\n\n` +
+            `Possíveis soluções:\n` +
+            `1. Verifique sua conexão com a internet\n` +
+            `2. Tente novamente em alguns minutos\n` +
+            `3. Use um modelo menor (Qwen 2.5 0.5B)\n` +
+            `4. Use as APIs gratuitas (DialoGPT ou BlenderBot) que não precisam de download\n\n` +
+            `Detalhes do erro: ${errorMessage}`
+          );
+        } else if (errorMessage.includes('memória') || errorMessage.includes('memory')) {
+          throw new Error(
+            `Memória insuficiente para carregar o modelo "${model}".\n\n` +
+            `Soluções:\n` +
+            `1. Feche outras abas do navegador\n` +
+            `2. Reinicie o navegador\n` +
+            `3. Use um modelo menor (Qwen 2.5 0.5B em vez de Phi-3)\n` +
+            `4. Use as APIs gratuitas (DialoGPT ou BlenderBot)\n\n` +
+            `Detalhes: ${errorMessage}`
+          );
+        } else {
+          throw new Error(
+            `Erro ao carregar modelo local "${model}".\n\n` +
+            `Sugestões:\n` +
+            `1. Verifique sua conexão com a internet\n` +
+            `2. Tente novamente\n` +
+            `3. Use as APIs gratuitas (DialoGPT ou BlenderBot) que funcionam online\n\n` +
+            `Detalhes: ${errorMessage}`
+          );
+        }
       }
     }
 

@@ -10,6 +10,11 @@ import { pipeline, env } from '@huggingface/transformers';
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
+// Configurações globais para melhor compatibilidade (se disponível)
+if (env.backends?.onnx?.wasm) {
+  env.backends.onnx.wasm.numThreads = 1; // Usar apenas 1 thread para melhor compatibilidade com mobile
+}
+
 // APIs gratuitas que não precisam de API key
 export const FREE_APIS = [
   {
@@ -78,33 +83,73 @@ class LocalAIProvider {
    */
   async loadModel(modelId: string, onProgress?: (progress: number) => void): Promise<void> {
     if (this.generators.has(modelId)) {
+      console.log(`[Local AI] Modelo ${modelId} já está carregado na memória`);
       return; // Já carregado
     }
 
     const model = LOCAL_MODELS.find(m => m.id === modelId);
     if (!model) {
-      throw new Error(`Modelo ${modelId} não encontrado`);
+      throw new Error(`Modelo ${modelId} não encontrado na lista de modelos disponíveis`);
     }
 
+    console.log(`[Local AI] Iniciando download do modelo ${modelId}...`);
+    console.log(`[Local AI] Tipo: ${model.type}, Tamanho estimado: ${model.size}`);
+
     try {
-      const generator = await pipeline(model.type, modelId, {
+      // Configurar timeout maior para downloads grandes (10 minutos)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout: O download do modelo demorou mais de 10 minutos. Verifique sua conexão e tente novamente.')), 600000);
+      });
+
+      const loadPromise = pipeline(model.type, modelId, {
+        // Forçar uso do cache do navegador se disponível
+        cache_dir: undefined,
+        // Configurações para melhor compatibilidade
+        device: 'wasm',
+        dtype: 'q8',
         progress_callback: (progress: any) => {
+          console.log('[Local AI] Progresso do download:', progress);
+          
           if (progress.status === 'progress' && progress.progress) {
             const percent = Math.round(progress.progress);
             this.downloadProgress.set(modelId, percent);
             onProgress?.(percent);
             this.notifyListeners(modelId, percent);
+          } else if (progress.status === 'initiate') {
+            console.log(`[Local AI] Iniciando download de: ${progress.file}`);
+          } else if (progress.status === 'ready') {
+            console.log(`[Local AI] Arquivo pronto: ${progress.file}`);
           }
         },
       });
+
+      // Aguardar com timeout
+      const generator = await Promise.race([loadPromise, timeoutPromise]);
 
       this.generators.set(modelId, generator);
       model.downloaded = true;
       this.downloadProgress.set(modelId, 100);
       this.notifyListeners(modelId, 100);
+      console.log(`[Local AI] Modelo ${modelId} carregado com sucesso!`);
     } catch (error) {
-      console.error('Erro ao carregar modelo:', error);
-      throw error;
+      console.error('[Local AI] Erro detalhado ao carregar modelo:', error);
+      
+      // Fornecer mensagens de erro mais específicas
+      if (error instanceof Error) {
+        if (error.message.includes('Timeout')) {
+          throw new Error(`Timeout: O download do modelo ${model.name} demorou muito. Tente novamente ou use uma conexão mais rápida.`);
+        } else if (error.message.includes('404') || error.message.includes('not found')) {
+          throw new Error(`Modelo ${modelId} não encontrado no Hugging Face. O modelo pode ter sido removido ou renomeado.`);
+        } else if (error.message.includes('CORS') || error.message.includes('NetworkError')) {
+          throw new Error(`Erro de rede ao baixar ${model.name}. Verifique sua conexão com a internet e tente novamente.`);
+        } else if (error.message.includes('memory') || error.message.includes('allocation')) {
+          throw new Error(`Memória insuficiente para carregar ${model.name}. Tente fechar outras abas ou use um modelo menor.`);
+        } else {
+          throw new Error(`Erro ao carregar modelo ${model.name}: ${error.message}`);
+        }
+      }
+      
+      throw new Error(`Erro desconhecido ao carregar modelo ${model.name}`);
     }
   }
 
