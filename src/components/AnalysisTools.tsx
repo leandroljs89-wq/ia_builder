@@ -27,6 +27,7 @@ export function AnalysisTools({ notebookId }: Props) {
   const notebook = notebooks.find(n => n.id === notebookId);
   const [result, setResult] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<AnalysisType | null>(null);
+  const [resultToolType, setResultToolType] = useState<AnalysisType | null>(null);
   const [copied, setCopied] = useState(false);
 
   if (!notebook) return null;
@@ -37,6 +38,7 @@ export function AnalysisTools({ notebookId }: Props) {
     const output = await runAnalysis(notebookId, type);
     if (output) {
       setResult(output);
+      setResultToolType(type);
     }
     setActiveTool(null);
   };
@@ -50,8 +52,8 @@ export function AnalysisTools({ notebookId }: Props) {
   };
 
   const handleSaveAsNote = () => {
-    if (result && activeTool) {
-      const tool = ANALYSIS_TOOLS.find(t => t.type === activeTool);
+    if (result && resultToolType) {
+      const tool = ANALYSIS_TOOLS.find(t => t.type === resultToolType);
       const { createNote } = useStore.getState();
       createNote(notebookId, `${tool?.label || 'Análise'} - ${new Date().toLocaleDateString()}`, result);
       showToast('success', 'Salvo nas notas!');
@@ -59,8 +61,8 @@ export function AnalysisTools({ notebookId }: Props) {
   };
 
   const handleExportPDF = () => {
-    if (!result || !activeTool) return;
-    const tool = ANALYSIS_TOOLS.find(t => t.type === activeTool);
+    if (!result || !resultToolType) return;
+    const tool = ANALYSIS_TOOLS.find(t => t.type === resultToolType);
     const notebook = notebooks.find(n => n.id === notebookId);
     
     const doc = generatePDF({
@@ -76,8 +78,8 @@ export function AnalysisTools({ notebookId }: Props) {
   };
 
   const handleSharePDF = async () => {
-    if (!result || !activeTool) return;
-    const tool = ANALYSIS_TOOLS.find(t => t.type === activeTool);
+    if (!result || !resultToolType) return;
+    const tool = ANALYSIS_TOOLS.find(t => t.type === resultToolType);
     const notebook = notebooks.find(n => n.id === notebookId);
     
     const doc = generatePDF({
