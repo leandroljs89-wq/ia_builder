@@ -5,9 +5,10 @@ import { AnalysisTools } from './AnalysisTools';
 import { NotesPanel } from './NotesPanel';
 import {
   Plus, Send, MessageSquare, FileText, StickyNote,
-  Sparkles, ChevronDown, Pin, RefreshCw, Copy, Check, Loader2,
-  Brain, Zap
+  Sparkles, Pin, RefreshCw, Copy, Check, Loader2,
+  Zap
 } from 'lucide-react';
+import { ProviderSelector } from './ProviderSelector';
 
 export function NotebookView() {
   const {
@@ -22,7 +23,6 @@ export function NotebookView() {
 
   const [activeTab, setActiveTab] = useState<'chat' | 'sources' | 'analysis' | 'notes'>('chat');
   const [inputValue, setInputValue] = useState('');
-  const [showModelPicker, setShowModelPicker] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -87,42 +87,9 @@ export function NotebookView() {
           </div>
         </div>
 
-        {/* Model Selector */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowModelPicker(!showModelPicker)}
-            className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-bg-tertiary border border-border rounded-lg text-xs hover:border-accent/50 transition-colors"
-          >
-            <Brain className="w-3.5 h-3.5 text-accent-light" />
-            <span className="text-text-secondary hidden sm:inline">
-              {useStore.getState().settings.defaultModel || 'Modelo'}
-            </span>
-            <ChevronDown className="w-3 h-3 text-text-muted" />
-          </button>
-          
-          {showModelPicker && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-bg-card border border-border rounded-xl shadow-xl z-50 p-2 animate-fade-in">
-              <p className="text-xs text-text-muted px-2 py-1">Provedores configurados</p>
-              {Object.entries(useStore.getState().settings.providers)
-                .filter(([_, p]) => p.status === 'configured')
-                .map(([id, provider]) => (
-                  <div key={id} className="mb-1">
-                    <p className="text-xs text-text-secondary px-2 py-1 font-medium">{provider.name}</p>
-                    {/* Show models from provider definitions */}
-                  </div>
-                ))
-              }
-              {Object.entries(useStore.getState().settings.providers).filter(([_, p]) => p.status === 'configured').length === 0 && (
-                <p className="text-xs text-text-muted px-2 py-2">Nenhum provedor configurado</p>
-              )}
-              <button
-                onClick={() => { setShowModelPicker(false); setPage('settings'); }}
-                className="w-full text-left px-2 py-1.5 text-xs text-accent-light hover:bg-bg-tertiary rounded"
-              >
-                + Configurar provedores
-              </button>
-            </div>
-          )}
+        {/* Provider Selector */}
+        <div className="shrink-0">
+          <ProviderSelector />
         </div>
       </header>
 
