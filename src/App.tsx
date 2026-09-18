@@ -12,15 +12,15 @@ export default function App() {
   const { currentPage, settings, loadState, showToast, setPage } = useStore();
 
   useEffect(() => {
-    loadState();
-    
-    // Run migrations to update deprecated models
-    const { migrated, changes } = runMigrations();
-    if (migrated && changes.length > 0) {
-      // Reload state after migration
-      loadState();
-      showToast('info', 'Modelos atualizados automaticamente');
-    }
+    loadState().then(() => {
+      // Run migrations to update deprecated models
+      const { migrated, changes } = runMigrations();
+      if (migrated && changes.length > 0) {
+        // Reload state after migration
+        loadState();
+        showToast('info', 'Modelos atualizados automaticamente');
+      }
+    });
 
     // Register service worker for PWA
     if ('serviceWorker' in navigator) {
