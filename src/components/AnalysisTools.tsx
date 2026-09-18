@@ -3,8 +3,9 @@ import { useStore } from '../store/useStore';
 import { AnalysisType } from '../lib/types';
 import {
   FileText, ListChecks, HelpCircle, Map, GitCompare,
-  Clock, Lightbulb, Newspaper, Loader2, Copy, Check
+  Clock, Lightbulb, Newspaper, Loader2, Copy, Check, Download, Share2
 } from 'lucide-react';
+import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
 
 interface Props {
   notebookId: string;
@@ -57,6 +58,46 @@ export function AnalysisTools({ notebookId }: Props) {
     }
   };
 
+  const handleExportPDF = () => {
+    if (!result || !activeTool) return;
+    const tool = ANALYSIS_TOOLS.find(t => t.type === activeTool);
+    const notebook = notebooks.find(n => n.id === notebookId);
+    
+    const doc = generatePDF({
+      title: tool?.label || 'Análise',
+      subtitle: `Notebook: ${notebook?.name || 'Sem nome'}`,
+      content: result,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+    
+    const filename = `${tool?.label || 'analise'}-${new Date().toISOString().split('T')[0]}.pdf`;
+    downloadPDF(doc, filename);
+    showToast('success', 'PDF exportado!');
+  };
+
+  const handleSharePDF = async () => {
+    if (!result || !activeTool) return;
+    const tool = ANALYSIS_TOOLS.find(t => t.type === activeTool);
+    const notebook = notebooks.find(n => n.id === notebookId);
+    
+    const doc = generatePDF({
+      title: tool?.label || 'Análise',
+      subtitle: `Notebook: ${notebook?.name || 'Sem nome'}`,
+      content: result,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+    
+    const title = `${tool?.label || 'Análise'} - ${notebook?.name || 'OpenNotebook'}`;
+    const shared = await sharePDF(doc, title);
+    
+    if (!shared) {
+      // Fallback: baixar PDF se compartilhamento não suportado
+      const filename = `${tool?.label || 'analise'}-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPDF(doc, filename);
+      showToast('info', 'PDF baixado (compartilhamento não suportado)');
+    }
+  };
+
   const readySources = notebook.sources.filter(s => s.status === 'ready' && s.enabled);
 
   return (
@@ -105,19 +146,34 @@ export function AnalysisTools({ notebookId }: Props) {
         <div className="animate-fade-in">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold">Resultado</h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
               <button
                 onClick={handleCopy}
                 className="flex items-center gap-1 px-2 py-1 text-xs text-text-muted hover:text-text-secondary transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? 'Copiado!' : 'Copiar'}
+                <span className="hidden sm:inline">{copied ? 'Copiado!' : 'Copiar'}</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-success hover:text-success/80 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">PDF</span>
+              </button>
+              <button
+                onClick={handleSharePDF}
+                className="flex items-center gap-1 px-2 py-1 text-xs text-accent-light hover:text-accent transition-colors"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Compartilhar</span>
               </button>
               <button
                 onClick={handleSaveAsNote}
                 className="flex items-center gap-1 px-2 py-1 text-xs text-accent-light hover:text-accent transition-colors"
               >
-                💾 Salvar como nota
+                <span className="hidden sm:inline">💾 Salvar como nota</span>
+                <span className="sm:hidden">💾</span>
               </button>
             </div>
           </div>

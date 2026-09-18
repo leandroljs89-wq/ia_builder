@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { Plus, Trash2, Edit3, Check, X, FileText, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Edit3, Check, X, FileText, Sparkles, Download, Share2 } from 'lucide-react';
 import { ConfirmModal } from './ConfirmModal';
+import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
 
 interface Props {
   notebookId: string;
@@ -55,6 +56,39 @@ export function NotesPanel({ notebookId }: Props) {
     a.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportPDF = (content: string, title: string) => {
+    const notebook = notebooks.find(n => n.id === notebookId);
+    const doc = generatePDF({
+      title: title,
+      subtitle: `Notebook: ${notebook?.name || 'Sem nome'}`,
+      content: content,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+    
+    const filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
+    downloadPDF(doc, filename);
+    useStore.getState().showToast('success', 'Nota exportada como PDF!');
+  };
+
+  const handleSharePDF = async (content: string, title: string) => {
+    const notebook = notebooks.find(n => n.id === notebookId);
+    const doc = generatePDF({
+      title: title,
+      subtitle: `Notebook: ${notebook?.name || 'Sem nome'}`,
+      content: content,
+      footer: 'Gerado por OpenNotebook AI',
+    });
+    
+    const shareTitle = `${title} - ${notebook?.name || 'OpenNotebook'}`;
+    const shared = await sharePDF(doc, shareTitle);
+    
+    if (!shared) {
+      const filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPDF(doc, filename);
+      useStore.getState().showToast('info', 'PDF baixado (compartilhamento não suportado)');
+    }
   };
 
   return (
@@ -160,13 +194,27 @@ export function NotesPanel({ notebookId }: Props) {
                       <span className="px-1.5 py-0.5 bg-accent/10 text-accent-light text-[10px] rounded">IA</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleExport(note.content, note.title)}
                       className="p-1 text-text-muted hover:text-text-secondary transition-colors"
-                      title="Exportar"
+                      title="Exportar Markdown"
                     >
                       📥
+                    </button>
+                    <button
+                      onClick={() => handleExportPDF(note.content, note.title)}
+                      className="p-1 text-text-muted hover:text-success transition-colors"
+                      title="Exportar PDF"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleSharePDF(note.content, note.title)}
+                      className="p-1 text-text-muted hover:text-accent-light transition-colors"
+                      title="Compartilhar PDF"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleEdit(note.id)}
