@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
 import { maskKey } from '../lib/crypto';
 import {
-  ArrowLeft, Key, Check, AlertCircle, Trash2, ExternalLink,
+  Key, Check, Trash2, ExternalLink,
   Shield, Loader2, Plus, ChevronDown, ChevronUp, Database
 } from 'lucide-react';
 import { DataManagement } from './DataManagement';
@@ -39,13 +39,7 @@ export function Settings() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0">
-        <button
-          onClick={() => setPage('dashboard')}
-          className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors shrink-0"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+      <header className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-border safe-top shrink-0 pl-14 lg:pl-6">
         <div className="min-w-0">
           <h1 className="text-base sm:text-lg font-bold">Configurações</h1>
           <p className="text-[10px] sm:text-xs text-text-muted">Gerencie provedores de IA e preferências</p>

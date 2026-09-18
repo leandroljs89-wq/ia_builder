@@ -4,9 +4,9 @@ import { SourceManager } from './SourceManager';
 import { AnalysisTools } from './AnalysisTools';
 import { NotesPanel } from './NotesPanel';
 import {
-  ArrowLeft, Plus, Send, MessageSquare, FileText, StickyNote,
+  Plus, Send, MessageSquare, FileText, StickyNote,
   Sparkles, ChevronDown, Pin, RefreshCw, Copy, Check, Loader2,
-  BookOpen, Brain, Zap
+  Brain, Zap
 } from 'lucide-react';
 
 export function NotebookView() {
@@ -73,14 +73,8 @@ export function NotebookView() {
   return (
     <div className="h-full flex flex-col safe-top">
       {/* Header */}
-      <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border bg-bg-secondary/50 shrink-0">
+      <header className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border bg-bg-secondary/50 shrink-0 pl-14 lg:pl-4">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <button
-            onClick={() => setPage('dashboard')}
-            className="p-1.5 text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
           <div
             className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
             style={{ backgroundColor: notebook.color + '20' }}
@@ -89,7 +83,7 @@ export function NotebookView() {
           </div>
           <div className="min-w-0">
             <h1 className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-none">{notebook.name}</h1>
-            <p className="text-[10px] sm:text-xs text-text-muted">{notebook.sources.filter(s => s.enabled).length} fontes</p>
+            <p className="text-[10px] sm:text-xs text-text-muted">{notebook.sources.filter(s => s.enabled).length} fontes ativas</p>
           </div>
         </div>
 
