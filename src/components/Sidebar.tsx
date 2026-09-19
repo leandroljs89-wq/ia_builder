@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import {
   Menu, X, Settings, Plus, MessageSquare, Trash2, BookOpen,
-  Home, ChevronRight, Zap
+  Home, ChevronRight, Zap, LogOut, User
 } from 'lucide-react';
 import { ConfirmModal } from './ConfirmModal';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Props {
   onOpenSettings: () => void;
+  user?: SupabaseUser | null;
+  onLogout?: () => void;
 }
 
-export function Sidebar({ onOpenSettings }: Props) {
+export function Sidebar({ onOpenSettings, user, onLogout }: Props) {
   const {
     notebooks, currentNotebookId, currentConversationId,
     setPage, createConversation, deleteConversation, deleteNotebook
@@ -191,7 +194,16 @@ export function Sidebar({ onOpenSettings }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-2">
+          {/* Informações do usuário */}
+          {user && (
+            <div className="flex items-center gap-2 px-3 py-2 text-xs text-text-muted">
+              <User className="w-4 h-4" />
+              <span className="flex-1 truncate">{user.email}</span>
+            </div>
+          )}
+
+          {/* Botão de configurações */}
           <button
             onClick={() => { onOpenSettings(); setIsOpen(false); }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
@@ -200,6 +212,17 @@ export function Sidebar({ onOpenSettings }: Props) {
             Configurações
             <ChevronRight className="w-4 h-4 ml-auto" />
           </button>
+
+          {/* Botão de logout */}
+          {user && onLogout && (
+            <button
+              onClick={() => { onLogout(); setIsOpen(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-error hover:bg-bg-tertiary rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </button>
+          )}
         </div>
       </aside>
 

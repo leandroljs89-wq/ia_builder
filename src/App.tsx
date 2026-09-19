@@ -6,14 +6,37 @@ import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Toast } from './components/Toast';
 import { Sidebar } from './components/Sidebar';
+import { AuthPage } from './components/AuthPage';
 import { runMigrations } from './lib/migrations';
+import { supabase } from './lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 export default function App() {
   const { currentPage, settings, loadState, showToast, setPage } = useStore();
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
+      // Verificar sessão atual do Supabase
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+
+      // Escutar mudanças de autenticação
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            console.log('✅ Usuário logado:', session.user.email);
+            // Carregar dados do Supabase quando logar
+            loadState();
+          }
+        }
+      );
+
       loadState();
       
       // Run migrations to update deprecated models
@@ -32,11 +55,26 @@ export default function App() {
           });
         });
       }
+
+      return () => subscription.unsubscribe();
     } catch (err) {
       console.error('Erro ao inicializar app:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      setLoading(false);
     }
   }, [loadState, showToast]);
+
+  // Tela de loading
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-bg-primary text-text-primary">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mx-auto mb-4"></div>
+          <p className="text-text-secondary">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Tela de erro
   if (error) {
@@ -55,6 +93,11 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  // Tela de login (opcional)
+  if (!user) {
+    return <AuthPage />;
   }
 
   const renderPage = () => {
@@ -96,11 +139,22 @@ export default function App() {
     setPage('settings');
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      showToast('success', 'Logout realizado com sucesso');
+    } catch (err) {
+      console.error('Erro ao fazer logout:', err);
+      showToast('error', 'Erro ao fazer logout');
+    }
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-bg-primary text-text-primary flex">
       {/* Sidebar */}
       {settings.onboardingComplete && (
-        <Sidebar onOpenSettings={handleOpenSettings} />
+        <Sidebar onOpenSettings={handleOpenSettings} user={user} onLogout={handleLogout} />
       )}
       
       {/* Main Content */}
