@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Plus, Trash2, Edit3, Check, X, FileText, Sparkles, Download, Share2 } from 'lucide-react';
 import { ConfirmModal } from './ConfirmModal';
-import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
+import { generatePDF, downloadPDF, sharePDF } from '../../utils/pdf-generator';
 
 interface Props {
   notebookId: string;

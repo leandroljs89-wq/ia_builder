@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { X, BookOpen, GraduationCap, Settings2, Check, Search } from 'lucide-react';
-import { ConversationMode, ResponseLength } from '../lib/types';
+import { ConversationMode, ResponseLength } from '../../types';
 
 interface Props {
   notebookId: string;

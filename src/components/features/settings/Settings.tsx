@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
-import { maskKey } from '../lib/crypto';
+import { PROVIDER_DEFINITIONS } from '../../services/ai/adapter';
+import { maskKey } from '../../utils/crypto';
 import {
   Key, Check, Trash2, ExternalLink,
   Shield, Loader2, Plus, ChevronDown, ChevronUp, Database, Cpu, X

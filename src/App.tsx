@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
-import { Dashboard } from './components/Dashboard';
-import { NotebookView } from './components/NotebookView';
-import { Settings } from './components/Settings';
-import { Onboarding } from './components/Onboarding';
-import { Toast } from './components/Toast';
-import { Sidebar } from './components/Sidebar';
-import { runMigrations } from './lib/migrations';
+import { Dashboard } from './components/features/dashboard/Dashboard';
+import { NotebookView } from './components/features/notebook/NotebookView';
+import { Settings } from './components/features/settings/Settings';
+import { Onboarding } from './components/features/onboarding/Onboarding';
+import { Toast } from './components/common/Toast';
+import { Sidebar } from './components/layout/Sidebar';
+import { runMigrations } from './utils/migrations';
 
 export default function App() {
   const { currentPage, settings, loadState, showToast, setPage } = useStore();

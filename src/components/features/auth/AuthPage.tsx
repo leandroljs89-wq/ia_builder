@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signIn, signUp } from '../lib/supabase';
+import { signIn, signUp } from '../../services/supabase/client';
 import { BookOpen, Mail, Lock, User, Loader2, AlertCircle } from 'lucide-react';
 
 export function AuthPage() {

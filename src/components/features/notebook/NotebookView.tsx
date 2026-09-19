@@ -10,7 +10,7 @@ import {
   Zap, Download, Share2, Settings
 } from 'lucide-react';
 import { ProviderSelector } from './ProviderSelector';
-import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
+import { generatePDF, downloadPDF, sharePDF } from '../../utils/pdf-generator';
 
 export function NotebookView() {
   const {
