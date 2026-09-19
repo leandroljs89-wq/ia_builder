@@ -807,49 +807,11 @@ export const useStore = create<AppState>((set, get) => ({
   // Persistence
   loadState: async () => {
     try {
-      // Tentar carregar do Supabase primeiro
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          console.log('[Supabase] Usuário autenticado, carregando dados do Supabase...');
-          const supabaseNotebooks = await db.getNotebooks();
-          if (supabaseNotebooks && supabaseNotebooks.length > 0) {
-            console.log(`[Supabase] ${supabaseNotebooks.length} notebooks carregados do Supabase`);
-            // Converter formato do Supabase para formato do app
-            const notebooks: Notebook[] = supabaseNotebooks.map(nb => ({
-              id: nb.id,
-              name: nb.name,
-              description: nb.description || '',
-              icon: nb.icon,
-              color: nb.color,
-              sources: [], // Carregar sources separadamente se necessário
-              conversations: [], // Carregar conversations separadamente se necessário
-              notes: [], // Carregar notes separadamente se necessário
-              settings: nb.settings || {
-                defaultModel: '',
-                defaultProvider: '',
-                mode: 'sources',
-                chunkSize: 512,
-                chunkOverlap: 50,
-                topK: 5,
-                temperature: 0.7,
-                systemPrompt: 'Você é um assistente de pesquisa útil.',
-              },
-              createdAt: new Date(nb.created_at).getTime(),
-              updatedAt: new Date(nb.updated_at).getTime(),
-            }));
-            set({ notebooks });
-          }
-        }
-      } catch (error) {
-        console.log('[Supabase] Erro ao carregar do Supabase, usando localStorage:', error);
-      }
-      
-      // Fallback para localStorage
+      // Carregar do localStorage
       const notebooks = localStorage.getItem('onb_notebooks');
       const settings = localStorage.getItem('onb_settings');
       
-      if (notebooks && get().notebooks.length === 0) {
+      if (notebooks) {
         set({ notebooks: JSON.parse(notebooks) });
       }
       
