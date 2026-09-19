@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { ChevronDown, Check } from 'lucide-react';
-import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
+import { PROVIDER_DEFINITIONS } from '../../services/ai/adapter';
 
 export function ProviderSelector() {
   const { settings, setDefaultModel, setPage } = useStore();

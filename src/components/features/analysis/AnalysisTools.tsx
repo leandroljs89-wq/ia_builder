@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { AnalysisType } from '../lib/types';
+import { AnalysisType } from '../../types';
 import {
   FileText, ListChecks, HelpCircle, Map, GitCompare,
   Clock, Lightbulb, Newspaper, Loader2, Copy, Check, Download, Share2
 } from 'lucide-react';
-import { generatePDF, downloadPDF, sharePDF } from '../lib/pdf-generator';
+import { generatePDF, downloadPDF, sharePDF } from '../../utils/pdf-generator';
 
 interface Props {
   notebookId: string;

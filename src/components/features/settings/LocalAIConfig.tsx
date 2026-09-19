@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { localAI, LOCAL_MODELS, FREE_APIS, LocalModel } from '../lib/local-ai';
+import { localAI, LOCAL_MODELS, FREE_APIS, LocalModel } from '../../services/ai/local';
 import { Download, Check, Loader2, Trash2, Cpu, Wifi, WifiOff, Globe } from 'lucide-react';
 
 export function LocalAIConfig() {

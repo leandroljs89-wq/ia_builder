@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
-import { PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
+import { PROVIDER_DEFINITIONS } from '../../services/ai/adapter';
 import { Sparkles, ArrowRight, Key, BookOpen, Brain, Zap } from 'lucide-react';
 
 export function Onboarding() {

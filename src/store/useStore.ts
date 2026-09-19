@@ -7,12 +7,12 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   Notebook, Source, Conversation, ChatMessage, Note,
   AIModel, Citation, SourceChunk, AnalysisType, AppSettings
-} from '../lib/types';
-import { aiAdapter, PROVIDER_DEFINITIONS } from '../lib/ai-adapter';
-import { processSourceContent, searchChunks, buildContextFromChunks, generateSimpleEmbedding } from '../lib/rag-pipeline';
-import { encryptKey } from '../lib/crypto';
-import { supabase } from '../lib/supabase';
-import * as db from '../lib/supabase-services';
+} from '../../types';
+import { aiAdapter, PROVIDER_DEFINITIONS } from '../services/ai/adapter';
+import { processSourceContent, searchChunks, buildContextFromChunks, generateSimpleEmbedding } from '../services/rag/pipeline';
+import { encryptKey } from '../utils/crypto';
+import { supabase } from '../services/supabase/client';
+import * as db from '../services/supabase/service';
 
 interface AppState {
   // Navigation
